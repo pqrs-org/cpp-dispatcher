@@ -9,7 +9,7 @@ public:
                        index_(index) {
   }
 
-  ~object1(void) {
+  virtual ~object1(void) {
     detach_from_dispatcher([this] {
       std::cout << "detached " << index_ << std::endl;
     });
