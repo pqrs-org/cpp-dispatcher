@@ -9,7 +9,8 @@ test.o: test.cpp \
 	../include/dispatcher/dispatcher.hpp \
 	../include/dispatcher/dispatcher_client.hpp \
 	../include/dispatcher/object_id.hpp \
-	../include/dispatcher/time_source.hpp
+	../include/dispatcher/time_source.hpp \
+	../include/dispatcher/wait.hpp \
 
 clean:
 	rm -f *.o a.out
