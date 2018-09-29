@@ -706,3 +706,30 @@ TEST_CASE("dispatcher.when_hardware_time_source") {
     }
   }
 }
+
+TEST_CASE("dispatcher.enqueue_and_wait") {
+  std::cout << "dispatcher.enqueue_and_wait" << std::endl;
+
+  auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
+
+  {
+    for (int i = 0; i < 1000; ++i) {
+      size_t count = 0;
+
+      auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
+
+      auto object_id = pqrs::dispatcher::make_new_object_id();
+      d->attach(object_id);
+
+      d->enqueue_and_wait(
+          object_id,
+          [&] {
+            ++count;
+          });
+
+      REQUIRE(count == 1);
+
+      d->terminate();
+    }
+  }
+}
