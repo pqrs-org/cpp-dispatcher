@@ -460,7 +460,7 @@ TEST_CASE("dispatcher.terminate") {
     d.enqueue(
         object_id,
         [&] {
-          d.terminate();
+          REQUIRE_THROWS(d.terminate());
         });
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

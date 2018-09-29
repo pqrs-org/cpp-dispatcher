@@ -9,6 +9,7 @@
 #include "dispatcher/object_id.hpp"
 #include "time_source.hpp"
 #include <deque>
+#include <exception>
 #include <mutex>
 #include <thread>
 
@@ -218,26 +219,18 @@ public:
     // ----------------------------------------
 
     if (is_dispatcher_thread()) {
+      throw std::logic_error("Do not call pqrs::dispatcher::terminate in the dispatcher thread.");
+    }
+
+    if (worker_thread_.joinable()) {
       {
         std::lock_guard<std::mutex> lock(mutex_);
 
         exit_ = true;
-        queue_.empty();
       }
 
-      worker_thread_.detach();
-
-    } else {
-      if (worker_thread_.joinable()) {
-        {
-          std::lock_guard<std::mutex> lock(mutex_);
-
-          exit_ = true;
-        }
-
-        cv_.notify_one();
-        worker_thread_.join();
-      }
+      cv_.notify_one();
+      worker_thread_.join();
     }
   }
 
