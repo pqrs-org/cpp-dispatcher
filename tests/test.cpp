@@ -257,6 +257,31 @@ TEST_CASE("dispatcher.detach_with_function") {
 
     d.terminate();
   }
+
+  // Call `detach` frequently
+
+  {
+    pqrs::dispatcher::dispatcher d(time_source);
+
+    for (int i = 0; i < 1000; ++i) {
+      if (i % 10 == 0) {
+        std::cout << "." << std::flush;
+      }
+
+      auto object_id = pqrs::dispatcher::make_new_object_id();
+      d.attach(object_id);
+
+      d.detach(
+          object_id,
+          [&] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+          });
+    }
+
+    std::cout << std::endl;
+
+    d.terminate();
+  }
 }
 
 namespace {
