@@ -45,7 +45,7 @@ TEST_CASE("dispatcher") {
     auto object_id = pqrs::dispatcher::make_new_object_id();
     d.attach(object_id);
 
-    REQUIRE(d.is_dispatcher_thread() == false);
+    REQUIRE(d.dispatcher_thread() == false);
 
     for (int i = 0; i < 10000; ++i) {
       d.enqueue(
@@ -57,7 +57,7 @@ TEST_CASE("dispatcher") {
               std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
 
-            REQUIRE(d.is_dispatcher_thread() == true);
+            REQUIRE(d.dispatcher_thread() == true);
           });
     }
 
@@ -317,52 +317,6 @@ TEST_CASE("dispatcher.recursive_detach") {
     std::vector<std::unique_ptr<recursive_detach_test>> objects;
     for (int i = 0; i < 10; ++i) {
       objects.push_back(std::make_unique<recursive_detach_test>(d));
-      objects.back()->f();
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-    objects.clear();
-
-    d->terminate();
-  }
-}
-
-namespace {
-class implicit_detach_test final : public pqrs::dispatcher::dispatcher_client {
-public:
-  implicit_detach_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher) {
-    p = &i;
-  }
-
-  virtual ~implicit_detach_test(void) {
-    p = nullptr;
-  }
-
-  void f(void) {
-    enqueue_to_dispatcher([this] {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      *p = 0;
-    });
-  }
-
-private:
-  int i;
-  int* p;
-};
-} // namespace
-
-TEST_CASE("dispatcher.implicit_detach_test") {
-  std::cout << "dispatcher.implicit_detach_test" << std::endl;
-
-  auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
-
-  {
-    auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
-
-    std::vector<std::unique_ptr<implicit_detach_test>> objects;
-    for (int i = 0; i < 10; ++i) {
-      objects.push_back(std::make_unique<implicit_detach_test>(d));
       objects.back()->f();
     }
 
