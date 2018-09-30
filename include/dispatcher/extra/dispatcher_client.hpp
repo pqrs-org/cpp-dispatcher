@@ -53,6 +53,13 @@ public:
     return dispatcher::when_immediately();
   }
 
+  bool attached(void) {
+    if (auto d = weak_dispatcher_.lock()) {
+      return d->attached(object_id_);
+    }
+    return false;
+  }
+
 protected:
   std::weak_ptr<dispatcher> weak_dispatcher_;
   object_id object_id_;
