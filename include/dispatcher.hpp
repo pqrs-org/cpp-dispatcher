@@ -7,7 +7,8 @@
 // (See http://www.boost.org/LICENSE_1_0.txt)
 
 #include "dispatcher/dispatcher.hpp"
-#include "dispatcher/dispatcher_client.hpp"
 #include "dispatcher/object_id.hpp"
 #include "dispatcher/time_source.hpp"
 #include "dispatcher/wait.hpp"
+
+#include "dispatcher/extra/dispatcher_client.hpp"

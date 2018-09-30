@@ -285,7 +285,7 @@ TEST_CASE("dispatcher.detach_with_function") {
 }
 
 namespace {
-class recursive_detach_test final : public pqrs::dispatcher::dispatcher_client {
+class recursive_detach_test final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
   recursive_detach_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher) {
   }
@@ -622,7 +622,7 @@ TEST_CASE("dispatcher.when") {
 }
 
 namespace {
-class when_hardware_time_source_test final : public pqrs::dispatcher::dispatcher_client {
+class when_hardware_time_source_test final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
   when_hardware_time_source_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
                                  size_t& count,

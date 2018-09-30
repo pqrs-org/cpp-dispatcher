@@ -4,13 +4,14 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See http://www.boost.org/LICENSE_1_0.txt)
 
-// `pqrs::dispatcher::dispatcher_client` can be used safely in a multi-threaded environment.
+// `pqrs::dispatcher::extra::dispatcher_client` can be used safely in a multi-threaded environment.
 
 #include "dispatcher/dispatcher.hpp"
 #include <memory>
 
 namespace pqrs {
 namespace dispatcher {
+namespace extra {
 class dispatcher_client {
 public:
   dispatcher_client(std::weak_ptr<dispatcher> weak_dispatcher) : weak_dispatcher_(weak_dispatcher),
@@ -56,5 +57,6 @@ protected:
   std::weak_ptr<dispatcher> weak_dispatcher_;
   object_id object_id_;
 };
+} // namespace extra
 } // namespace dispatcher
 } // namespace pqrs

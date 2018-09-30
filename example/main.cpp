@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-class object1 final : public pqrs::dispatcher::dispatcher_client {
+class object1 final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
   object1(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
           int index) : dispatcher_client(weak_dispatcher),
