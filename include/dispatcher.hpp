@@ -12,3 +12,4 @@
 #include "dispatcher/wait.hpp"
 
 #include "dispatcher/extra/dispatcher_client.hpp"
+#include "dispatcher/extra/timer.hpp"

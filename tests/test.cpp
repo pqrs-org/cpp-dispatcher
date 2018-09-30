@@ -423,29 +423,6 @@ TEST_CASE("dispatcher.detach_recursive") {
   }
 }
 
-TEST_CASE("dispatcher.terminate") {
-  std::cout << "dispatcher.terminate" << std::endl;
-
-  auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
-
-  // Call `terminate` in the dispatcher thread.
-
-  {
-    pqrs::dispatcher::dispatcher d(time_source);
-
-    auto object_id = pqrs::dispatcher::make_new_object_id();
-    d.attach(object_id);
-
-    d.enqueue(
-        object_id,
-        [&] {
-          REQUIRE_THROWS(d.terminate());
-        });
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-}
-
 namespace {
 void dispatcher_recursive_function(pqrs::dispatcher::dispatcher& d,
                                    const pqrs::dispatcher::object_id& id,
@@ -669,6 +646,61 @@ TEST_CASE("dispatcher.when_hardware_time_source") {
       d->terminate();
 
       std::cout << std::endl;
+    }
+  }
+}
+
+namespace {
+class timer_test final : public pqrs::dispatcher::extra::dispatcher_client {
+public:
+  timer_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
+             size_t& count,
+             std::chrono::milliseconds duration) : dispatcher_client(weak_dispatcher),
+                                                   timer_(*this) {
+    timer_.start(
+        [&count] {
+          ++count;
+        },
+        std::chrono::milliseconds(100));
+  }
+
+  void stop(void) {
+    timer_.stop();
+  }
+
+  virtual ~timer_test(void) {
+    timer_.stop();
+
+    detach_from_dispatcher([] {
+    });
+  }
+
+private:
+  pqrs::dispatcher::extra::timer timer_;
+};
+} // namespace
+
+TEST_CASE("dispatcher.timer") {
+  std::cout << "dispatcher.timer" << std::endl;
+
+  auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
+
+  {
+    size_t count = 0;
+
+    {
+      auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
+
+      auto t = std::make_unique<timer_test>(d, count, std::chrono::milliseconds(100));
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+      t->stop();
+
+      REQUIRE(count > 2);
+      REQUIRE(count < 8);
+
+      d->terminate();
     }
   }
 }
