@@ -590,19 +590,31 @@ TEST_CASE("dispatcher.when") {
 
       REQUIRE(string == "abd");
 
+      // Enqueue new entry while dispatcher is waiting.
+
+      d.enqueue(
+          object_id,
+          [&] {
+            string += "e";
+          });
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      REQUIRE(string == "abde");
+
       time_source->set_now(std::chrono::milliseconds(499));
       d.invoke();
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-      REQUIRE(string == "abd");
+      REQUIRE(string == "abde");
 
       time_source->set_now(std::chrono::milliseconds(500));
       d.invoke();
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-      REQUIRE(string == "abdc");
+      REQUIRE(string == "abdec");
 
       d.terminate();
     }
