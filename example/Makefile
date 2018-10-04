@@ -10,6 +10,7 @@ main.o: main.cpp \
 	../include/dispatcher/time_source.hpp \
 	../include/dispatcher/wait.hpp \
 	../include/dispatcher/extra/dispatcher_client.hpp \
+	../include/dispatcher/extra/shared_dispatcher.hpp \
 	../include/dispatcher/extra/timer.hpp
 
 clean:
