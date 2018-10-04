@@ -40,7 +40,7 @@ public:
             std::chrono::milliseconds now = when_immediately();
             std::chrono::milliseconds when = when_immediately();
 
-            if (auto s = weak_time_source_.lock()) {
+            if (auto s = lock_weak_time_source()) {
               auto n = s->now();
               if (now < n) {
                 now = n;
@@ -128,8 +128,16 @@ public:
     }
   }
 
-  std::weak_ptr<time_source> get_weak_time_source(void) {
-    return weak_time_source_;
+  void set_weak_time_source(std::weak_ptr<time_source> value) {
+    std::lock_guard<std::mutex> lock(weak_time_source_mutex_);
+
+    weak_time_source_ = value;
+  }
+
+  std::shared_ptr<time_source> lock_weak_time_source(void) const {
+    std::lock_guard<std::mutex> lock(weak_time_source_mutex_);
+
+    return weak_time_source_.lock();
   }
 
   void attach(const object_id& object_id) {
@@ -345,6 +353,7 @@ private:
   };
 
   std::weak_ptr<time_source> weak_time_source_;
+  mutable std::mutex weak_time_source_mutex_;
 
   std::thread worker_thread_;
   std::thread::id worker_thread_id_;

@@ -45,7 +45,7 @@ public:
 
   std::chrono::milliseconds when_now(void) const {
     if (auto d = weak_dispatcher_.lock()) {
-      if (auto s = d->get_weak_time_source().lock()) {
+      if (auto s = d->lock_weak_time_source()) {
         return s->now();
       }
     }
