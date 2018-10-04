@@ -63,8 +63,19 @@ TEST_CASE("dispatcher") {
 
     REQUIRE(count < 10000);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
     std::cout << std::endl;
+
+    REQUIRE(count >= 2000);
+    REQUIRE(count < 10000);
+
+    auto wait = pqrs::dispatcher::make_wait();
+    d.enqueue(
+        object_id,
+        [wait] {
+          wait->notify();
+        });
+    wait->wait_notice();
 
     REQUIRE(count == 10000);
 
@@ -111,8 +122,8 @@ TEST_CASE("dispatcher.preserve_the_order_of_entries") {
   }
 }
 
-TEST_CASE("dispatcher.run_enqueued_functions_in_the_destructor") {
-  std::cout << "dispatcher.run_enqueued_functions_in_the_destructor" << std::endl;
+TEST_CASE("dispatcher.ignore_queued_functions_at_terminate") {
+  std::cout << "dispatcher.ignore_queued_functions_at_terminate" << std::endl;
 
   auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
 
@@ -136,10 +147,13 @@ TEST_CASE("dispatcher.run_enqueued_functions_in_the_destructor") {
             });
       }
 
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
       d.terminate();
     }
 
-    REQUIRE(count == 10000);
+    REQUIRE(count > 1000);
+    REQUIRE(count < 10000);
   }
 
   // Ignore `enqueue` after `terminate`.
@@ -191,7 +205,7 @@ TEST_CASE("dispatcher.detach") {
           ++count;
         });
 
-    // `detach` cancel enqueued functions.
+    // `detach` cancel queued functions.
 
     d.detach(object_id);
 
@@ -395,7 +409,7 @@ TEST_CASE("dispatcher.detach_recursive") {
     d.terminate();
   }
 
-  // Call `detach` in the enqueued function.
+  // Call `detach` in the queued function.
 
   {
     pqrs::dispatcher::dispatcher d(time_source);
@@ -503,6 +517,8 @@ TEST_CASE("dispatcher.recursive") {
             dispatcher_recursive_function(d, object_id, count);
           });
 
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
       d.terminate();
     }
 
@@ -516,6 +532,8 @@ TEST_CASE("dispatcher.recursive") {
       dispatcher_recursive_class dispatcher_recursive_class(count);
 
       dispatcher_recursive_class.enqueue();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     REQUIRE(count == 1);

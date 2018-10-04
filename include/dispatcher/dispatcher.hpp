@@ -89,7 +89,7 @@ public:
           // ----------------------------------------
           // Check condition
 
-          if (exit_ && queue_.empty()) {
+          if (exit_) {
             break;
           }
 
@@ -152,11 +152,13 @@ public:
     {
       std::lock_guard<std::mutex> lock(object_ids_mutex_);
 
-      if (object_ids_.find(object_id.get()) == std::end(object_ids_)) {
+      auto it = object_ids_.find(object_id.get());
+
+      if (it == std::end(object_ids_)) {
         return false;
       }
 
-      object_ids_.erase(object_id.get());
+      object_ids_.erase(it);
     }
 
     // Erase entries
