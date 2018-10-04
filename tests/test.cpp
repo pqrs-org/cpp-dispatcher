@@ -661,7 +661,7 @@ public:
         [&count] {
           ++count;
         },
-        std::chrono::milliseconds(100));
+        duration);
   }
 
   void stop(void) {
@@ -696,6 +696,7 @@ TEST_CASE("dispatcher.timer") {
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
       t->stop();
+      t = nullptr;
 
       REQUIRE(count > 2);
       REQUIRE(count < 8);
