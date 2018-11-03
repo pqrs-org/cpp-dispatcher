@@ -1,20 +1,15 @@
-CXXFLAGS = -std=c++14 -g -I../include -Wall -Werror -O2
-
-all: main.o
-	c++ main.o
-
-main.o: main.cpp \
-	../include/dispatcher.hpp \
-	../include/dispatcher/dispatcher.hpp \
-	../include/dispatcher/object_id.hpp \
-	../include/dispatcher/time_source.hpp \
-	../include/dispatcher/wait.hpp \
-	../include/dispatcher/extra/dispatcher_client.hpp \
-	../include/dispatcher/extra/shared_dispatcher.hpp \
-	../include/dispatcher/extra/timer.hpp
+all:
+	mkdir -p build \
+		&& cd build \
+		&& cmake .. \
+		&& make
+	make run
 
 clean:
-	rm -f *.o a.out
+	rm -r build
+
+run:
+	./build/example
 
 update_vendor:
 	cget install -f cget-requirements.txt --prefix vendor
