@@ -1,18 +1,17 @@
-CXXFLAGS = -std=c++14 -g -I../include -Wall -Werror -O2
-
-all: test.o
-	c++ test.o
-	./a.out
-
-test.o: test.cpp \
-	../include/dispatcher.hpp \
-	../include/dispatcher/dispatcher.hpp \
-	../include/dispatcher/object_id.hpp \
-	../include/dispatcher/time_source.hpp \
-	../include/dispatcher/wait.hpp \
-	../include/dispatcher/extra/dispatcher_client.hpp \
-	../include/dispatcher/extra/shared_dispatcher.hpp \
-	../include/dispatcher/extra/timer.hpp
+all:
+	@for d in `find * -type d`; do \
+		if [ -f "$$d/Makefile" ]; then \
+			echo "[Test] $$d"; \
+			make -C $$d || exit 1; \
+		fi; \
+	done
 
 clean:
-	rm -f *.o a.out
+	@for d in `find * -type d`; do \
+		if [ -f "$$d/Makefile" ]; then \
+			make -C $$d clean; \
+		fi; \
+	done
+
+update_vendor:
+	cget install -f cget-requirements.txt --prefix vendor
