@@ -1,7 +1,7 @@
 {
-    "files.exclude": {
-        "**/*.o": true,
-        "**/*.tmp": true,
-        "**/a.out": true
-    }
+  "files.exclude": {
+    "**/build/": true,
+    "**/vendor/cget/": true,
+    ".vscode/browse.vc.*": true
+  }
 }
