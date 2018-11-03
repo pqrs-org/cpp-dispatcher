@@ -13,6 +13,6 @@ cpp-dispatcher depends [pqrs::thread_wait](https://github.com/pqrs-org/cpp-threa
 You can install them by using [cget](https://github.com/pfultz2/cget).
 
 ```shell
-cget install pqrs-org/cpp-thread_wait@v1.0.0 --cmake header
+cget install pqrs-org/cpp-thread_wait@v1.1.0 --cmake header
 cget install pqrs-org/cpp-dispatcher@v1.11.0 --cmake header
 ```
