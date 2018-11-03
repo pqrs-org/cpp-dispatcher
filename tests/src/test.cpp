@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
-#include "vendor/include/catch.hpp"
+#include <catch2/catch.hpp>
 
-#include "dispatcher.hpp"
+#include <pqrs/dispatcher.hpp>
 
 TEST_CASE("object_id") {
   {
@@ -69,7 +69,7 @@ TEST_CASE("dispatcher") {
     REQUIRE(count >= 2000);
     REQUIRE(count < 10000);
 
-    auto wait = pqrs::dispatcher::make_wait();
+    auto wait = pqrs::make_thread_wait();
     d.enqueue(
         object_id,
         [wait] {
