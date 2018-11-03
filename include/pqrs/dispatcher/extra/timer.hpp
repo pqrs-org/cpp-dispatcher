@@ -6,7 +6,7 @@
 
 // `pqrs::dispatcher::extra::timer` can be used safely in a multi-threaded environment.
 
-#include "dispatcher/extra/dispatcher_client.hpp"
+#include "dispatcher_client.hpp"
 
 namespace pqrs {
 namespace dispatcher {

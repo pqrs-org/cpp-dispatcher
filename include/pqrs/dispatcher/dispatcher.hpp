@@ -6,12 +6,12 @@
 
 // `pqrs::dispatcher::dispatcher` can be used safely in a multi-threaded environment.
 
-#include "dispatcher/object_id.hpp"
-#include "dispatcher/wait.hpp"
+#include "object_id.hpp"
 #include "time_source.hpp"
 #include <deque>
 #include <exception>
 #include <mutex>
+#include <pqrs/thread_wait.hpp>
 #include <thread>
 
 namespace pqrs {
@@ -21,7 +21,7 @@ public:
   dispatcher(const dispatcher&) = delete;
 
   dispatcher(std::weak_ptr<time_source> weak_time_source) : weak_time_source_(weak_time_source),
-                                                            worker_thread_id_wait_(make_wait()),
+                                                            worker_thread_id_wait_(make_thread_wait()),
                                                             exit_(false),
                                                             object_id_(make_new_object_id()) {
     worker_thread_ = std::thread([this] {
@@ -203,7 +203,7 @@ public:
     if (dispatcher_thread()) {
       function();
     } else {
-      auto w = make_wait();
+      auto w = make_thread_wait();
 
       // Run detached function with dispatcher's object_id.
       // (`object_id` in arguments is already detached.)
@@ -359,7 +359,7 @@ private:
 
   std::thread worker_thread_;
   std::thread::id worker_thread_id_;
-  std::shared_ptr<wait> worker_thread_id_wait_;
+  std::shared_ptr<thread_wait> worker_thread_id_wait_;
 
   std::deque<std::shared_ptr<entry>> queue_;
   bool exit_;

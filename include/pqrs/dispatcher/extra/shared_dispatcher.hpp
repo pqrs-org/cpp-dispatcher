@@ -6,7 +6,7 @@
 
 // `pqrs::dispatcher::extra::shared_dispatcher` can be used safely in a multi-threaded environment.
 
-#include "dispatcher/dispatcher.hpp"
+#include "../dispatcher.hpp"
 
 namespace pqrs {
 namespace dispatcher {
