@@ -23,7 +23,7 @@ class timer final {
 public:
   timer(dispatcher_client& dispatcher_client) : dispatcher_client_(dispatcher_client),
                                                 current_function_id_(0),
-                                                interval_(std::chrono::milliseconds(0)) {
+                                                interval_(0) {
   }
 
   ~timer(void) {
@@ -34,7 +34,7 @@ public:
   }
 
   void start(const std::function<void(void)>& function,
-             std::chrono::milliseconds interval) {
+             duration interval) {
     dispatcher_client_.enqueue_to_dispatcher([this, function, interval] {
       ++current_function_id_;
       function_ = function;
@@ -48,7 +48,7 @@ public:
     dispatcher_client_.enqueue_to_dispatcher([this] {
       ++current_function_id_;
       function_ = nullptr;
-      interval_ = std::chrono::milliseconds(0);
+      interval_ = duration(0);
     });
   }
 
@@ -73,7 +73,7 @@ private:
   dispatcher_client& dispatcher_client_;
   int current_function_id_;
   std::function<void(void)> function_;
-  std::chrono::milliseconds interval_;
+  duration interval_;
 };
 } // namespace extra
 } // namespace dispatcher

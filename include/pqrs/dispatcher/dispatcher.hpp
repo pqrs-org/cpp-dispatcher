@@ -36,9 +36,9 @@ public:
 
           // ----------------------------------------
 
-          std::function<std::chrono::milliseconds(void)> calculate_duration([this] {
-            std::chrono::milliseconds now = when_immediately();
-            std::chrono::milliseconds when = when_immediately();
+          std::function<duration(void)> calculate_duration([this] {
+            auto now = when_immediately();
+            auto when = when_immediately();
 
             if (auto s = lock_weak_time_source()) {
               auto n = s->now();
@@ -55,21 +55,21 @@ public:
               return when - now;
             }
 
-            return std::chrono::milliseconds(0);
+            return duration(0);
           });
 
           // ----------------------------------------
           // Wait
 
-          auto duration = calculate_duration();
+          auto d = calculate_duration();
 
-          if (duration == std::chrono::milliseconds(0)) {
+          if (d == duration(0)) {
             cv_.wait(lock, [this] {
               return exit_ || !queue_.empty();
             });
           } else {
             // when > now
-            cv_.wait_for(lock, duration, [this, &calculate_duration] {
+            cv_.wait_for(lock, d, [this, &calculate_duration] {
               if (exit_) {
                 return true;
               }
@@ -78,7 +78,7 @@ public:
                 return false;
               }
 
-              if (calculate_duration() == std::chrono::milliseconds(0)) {
+              if (calculate_duration() == duration(0)) {
                 return true;
               }
 
@@ -95,9 +95,9 @@ public:
 
           // Check `duration` again.
 
-          duration = calculate_duration();
+          d = calculate_duration();
 
-          if (duration > std::chrono::milliseconds(0)) {
+          if (d > duration(0)) {
             continue;
           }
 
@@ -280,7 +280,7 @@ public:
 
   void enqueue(const object_id& object_id,
                const std::function<void(void)>& function,
-               std::chrono::milliseconds when = when_immediately()) {
+               time_point when = when_immediately()) {
     {
       std::lock_guard<std::mutex> lock(mutex_);
 
@@ -318,12 +318,12 @@ public:
     cv_.notify_one();
   }
 
-  static constexpr std::chrono::milliseconds when_internal_detached() {
-    return std::chrono::milliseconds(0);
+  static constexpr time_point when_internal_detached() {
+    return time_point(duration(0));
   }
 
-  static constexpr std::chrono::milliseconds when_immediately() {
-    return std::chrono::milliseconds(1);
+  static constexpr time_point when_immediately() {
+    return time_point(duration(1));
   }
 
 private:
@@ -331,16 +331,16 @@ private:
   public:
     entry(uint64_t object_id_value,
           const std::function<void(void)>& function,
-          std::chrono::milliseconds when) : object_id_value_(object_id_value),
-                                            function_(function),
-                                            when_(when) {
+          time_point when) : object_id_value_(object_id_value),
+                             function_(function),
+                             when_(when) {
     }
 
     uint64_t get_object_id_value(void) const {
       return object_id_value_;
     }
 
-    std::chrono::milliseconds get_when(void) const {
+    time_point get_when(void) const {
       return when_;
     }
 
@@ -351,7 +351,7 @@ private:
   private:
     uint64_t object_id_value_;
     std::function<void(void)> function_;
-    std::chrono::milliseconds when_;
+    time_point when_;
   };
 
   std::weak_ptr<time_source> weak_time_source_;

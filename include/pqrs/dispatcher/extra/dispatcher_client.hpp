@@ -38,13 +38,13 @@ public:
   }
 
   void enqueue_to_dispatcher(const std::function<void(void)>& function,
-                             std::chrono::milliseconds when = dispatcher::when_immediately()) const {
+                             time_point when = dispatcher::when_immediately()) const {
     if (auto d = weak_dispatcher_.lock()) {
       d->enqueue(object_id_, function, when);
     }
   }
 
-  std::chrono::milliseconds when_now(void) const {
+  time_point when_now(void) const {
     if (auto d = weak_dispatcher_.lock()) {
       if (auto s = d->lock_weak_time_source()) {
         return s->now();

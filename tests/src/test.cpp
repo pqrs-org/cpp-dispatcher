@@ -554,7 +554,7 @@ TEST_CASE("dispatcher.when") {
       auto object_id = pqrs::dispatcher::make_new_object_id();
       d.attach(object_id);
 
-      time_source->set_now(std::chrono::milliseconds(0));
+      time_source->set_now(pqrs::dispatcher::time_point(pqrs::dispatcher::duration(0)));
 
       d.enqueue(
           object_id,
@@ -573,7 +573,7 @@ TEST_CASE("dispatcher.when") {
           [&] {
             string += "c";
           },
-          std::chrono::milliseconds(500));
+          pqrs::dispatcher::time_point(std::chrono::seconds(500)));
 
       d.enqueue(
           object_id,
@@ -597,14 +597,14 @@ TEST_CASE("dispatcher.when") {
 
       REQUIRE(string == "abde");
 
-      time_source->set_now(std::chrono::milliseconds(499));
+      time_source->set_now(pqrs::dispatcher::time_point(pqrs::dispatcher::duration(499)));
       d.invoke();
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       REQUIRE(string == "abde");
 
-      time_source->set_now(std::chrono::milliseconds(500));
+      time_source->set_now(pqrs::dispatcher::time_point(pqrs::dispatcher::duration(500)));
       d.invoke();
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -621,7 +621,7 @@ class when_hardware_time_source_test final : public pqrs::dispatcher::extra::dis
 public:
   when_hardware_time_source_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
                                  size_t& count,
-                                 std::chrono::milliseconds duration) : dispatcher_client(weak_dispatcher) {
+                                 pqrs::dispatcher::duration duration) : dispatcher_client(weak_dispatcher) {
     enqueue_to_dispatcher(
         [&count] {
           std::cout << "." << std::flush;
@@ -653,7 +653,7 @@ TEST_CASE("dispatcher.when_hardware_time_source") {
         objects.push_back(std::make_unique<when_hardware_time_source_test>(
             d,
             count,
-            std::chrono::milliseconds(i * 100)));
+            pqrs::dispatcher::duration(i * 100)));
       }
 
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -709,7 +709,7 @@ TEST_CASE("dispatcher.timer") {
     {
       auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
 
-      auto t = std::make_unique<timer_test>(d, count, std::chrono::milliseconds(100));
+      auto t = std::make_unique<timer_test>(d, count, pqrs::dispatcher::duration(100));
 
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
