@@ -15,3 +15,6 @@ main.o: main.cpp \
 
 clean:
 	rm -f *.o a.out
+
+update_vendor:
+	cget install -f cget-requirements.txt --prefix vendor
