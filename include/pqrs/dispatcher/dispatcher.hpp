@@ -285,7 +285,7 @@ public:
       std::lock_guard<std::mutex> lock(mutex_);
 
       auto id = object_id.get();
-      queue_.push_back(std::make_shared<entry>(
+      auto new_entry = std::make_shared<entry>(
           id,
           [this, id, function] {
             // Check `id` is attached.
@@ -302,13 +302,24 @@ public:
 
             function();
           },
-          when));
+          when);
 
-      std::stable_sort(std::begin(queue_),
-                       std::end(queue_),
-                       [](auto& a, auto& b) {
-                         return a->get_when() < b->get_when();
-                       });
+      if (when == when_internal_detached()) {
+        queue_.push_front(new_entry);
+      } else {
+        // qnene_ must be sorted by when_.
+
+        auto it = std::find_if(std::rbegin(queue_),
+                               std::rend(queue_),
+                               [&](auto&& e) {
+                                 return e->get_when() <= when;
+                               });
+        if (it == std::rend(queue_)) {
+          queue_.push_front(new_entry);
+        } else {
+          queue_.insert(it.base(), new_entry);
+        }
+      }
     }
 
     cv_.notify_one();
