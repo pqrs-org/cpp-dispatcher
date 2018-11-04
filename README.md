@@ -10,7 +10,15 @@ The main aim of this library is to avoid calling function with a released object
 
 cpp-dispatcher depends [pqrs::thread_wait](https://github.com/pqrs-org/cpp-thread_wait).
 
-You can install them by using [cget](https://github.com/pfultz2/cget).
+## Install
+
+### Manual install
+
+Copy `include/pqrs` directory into your include directory.
+
+### Using package manager
+
+You can also install `include/pqrs` by using [cget](https://github.com/pfultz2/cget).
 
 ```shell
 cget install pqrs-org/cpp-thread_wait@v1.2.0 --cmake header
