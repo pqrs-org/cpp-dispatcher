@@ -1,2 +1,2 @@
 catchorg/Catch2@v2.4.2
-pqrs-org/cpp-thread_wait@v1.1.0 --cmake header
+pqrs-org/cpp-thread_wait@v1.2.0 --cmake header
