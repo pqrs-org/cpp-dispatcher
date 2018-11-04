@@ -22,5 +22,5 @@ You can also install `include/pqrs` by using [cget](https://github.com/pfultz2/c
 
 ```shell
 cget install pqrs-org/cpp-thread_wait@v1.2.0 --cmake header
-cget install pqrs-org/cpp-dispatcher@v2.0.0 --cmake header
+cget install pqrs-org/cpp-dispatcher@v2.1.0 --cmake header
 ```
