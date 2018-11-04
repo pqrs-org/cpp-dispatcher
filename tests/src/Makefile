@@ -6,7 +6,7 @@ all:
 	make run
 
 clean:
-	rm -r build
+	rm -rf build
 
 run:
 	./build/test
