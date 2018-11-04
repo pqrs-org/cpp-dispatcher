@@ -47,6 +47,8 @@ TEST_CASE("dispatcher") {
 
     REQUIRE(d.dispatcher_thread() == false);
 
+    auto start = std::chrono::steady_clock::now();
+
     for (int i = 0; i < 10000; ++i) {
       d.enqueue(
           object_id,
@@ -61,14 +63,6 @@ TEST_CASE("dispatcher") {
           });
     }
 
-    REQUIRE(count < 10000);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    std::cout << std::endl;
-
-    REQUIRE(count >= 2000);
-    REQUIRE(count < 10000);
-
     auto wait = pqrs::make_thread_wait();
     d.enqueue(
         object_id,
@@ -77,7 +71,8 @@ TEST_CASE("dispatcher") {
         });
     wait->wait_notice();
 
-    REQUIRE(count == 10000);
+    auto elapsed = std::chrono::steady_clock::now() - start;
+    REQUIRE(elapsed > std::chrono::milliseconds(400));
 
     d.detach(object_id);
     d.terminate();
@@ -122,41 +117,10 @@ TEST_CASE("dispatcher.preserve_the_order_of_entries") {
   }
 }
 
-TEST_CASE("dispatcher.ignore_queued_functions_at_terminate") {
-  std::cout << "dispatcher.ignore_queued_functions_at_terminate" << std::endl;
+TEST_CASE("dispatcher.ignore_enqueue_after_terminate") {
+  std::cout << "dispatcher.ignore_enqueue_after_terminate" << std::endl;
 
   auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
-
-  {
-    size_t count = 0;
-
-    {
-      pqrs::dispatcher::dispatcher d(time_source);
-
-      auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
-
-      for (int i = 0; i < 10000; ++i) {
-        d.enqueue(
-            object_id,
-            [&count, i] {
-              ++count;
-              if (i % 1000 == 0) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-              }
-            });
-      }
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-      d.terminate();
-    }
-
-    REQUIRE(count > 1000);
-    REQUIRE(count < 10000);
-  }
-
-  // Ignore `enqueue` after `terminate`.
 
   {
     size_t count = 0;
@@ -554,7 +518,7 @@ TEST_CASE("dispatcher.when") {
       auto object_id = pqrs::dispatcher::make_new_object_id();
       d.attach(object_id);
 
-      time_source->set_now(pqrs::dispatcher::time_point(pqrs::dispatcher::duration(0)));
+      time_source->set_now(pqrs::dispatcher::time_point(std::chrono::milliseconds(0)));
 
       d.enqueue(
           object_id,
@@ -573,7 +537,7 @@ TEST_CASE("dispatcher.when") {
           [&] {
             string += "c";
           },
-          pqrs::dispatcher::time_point(std::chrono::seconds(500)));
+          pqrs::dispatcher::time_point(std::chrono::milliseconds(500)));
 
       d.enqueue(
           object_id,
@@ -597,14 +561,14 @@ TEST_CASE("dispatcher.when") {
 
       REQUIRE(string == "abde");
 
-      time_source->set_now(pqrs::dispatcher::time_point(pqrs::dispatcher::duration(499)));
+      time_source->set_now(pqrs::dispatcher::time_point(std::chrono::milliseconds(499)));
       d.invoke();
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       REQUIRE(string == "abde");
 
-      time_source->set_now(pqrs::dispatcher::time_point(pqrs::dispatcher::duration(500)));
+      time_source->set_now(pqrs::dispatcher::time_point(std::chrono::milliseconds(500)));
       d.invoke();
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
