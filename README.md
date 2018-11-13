@@ -12,15 +12,15 @@ cpp-dispatcher depends [pqrs::thread_wait](https://github.com/pqrs-org/cpp-threa
 
 ## Install
 
+### Using package manager
+
+You can install `include/pqrs` by using [cget](https://github.com/pfultz2/cget).
+
+```shell
+cget install pqrs-org/cpp-cget-recipes
+cget install pqrs-org/cpp-dispatcher
+```
+
 ### Manual install
 
 Copy `include/pqrs` directory into your include directory.
-
-### Using package manager
-
-You can also install `include/pqrs` by using [cget](https://github.com/pfultz2/cget).
-
-```shell
-cget install pqrs-org/cpp-thread_wait@v1.2.0 --cmake header
-cget install pqrs-org/cpp-dispatcher@v2.1.0 --cmake header
-```
