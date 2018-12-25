@@ -4,7 +4,8 @@
 
 class object1 final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
-  object1(int index) : dispatcher_client(),
+  object1(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
+          int index) : dispatcher_client(weak_dispatcher),
                        index_(index) {
   }
 
@@ -28,10 +29,11 @@ private:
 int main(void) {
   std::vector<std::unique_ptr<object1>> objects;
 
-  pqrs::dispatcher::extra::initialize_shared_dispatcher();
+  auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
+  auto dispatcher = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
 
   for (int i = 0; i < 20; ++i) {
-    objects.emplace_back(std::make_unique<object1>(i));
+    objects.emplace_back(std::make_unique<object1>(dispatcher, i));
     objects.back()->hello();
   }
 
@@ -39,5 +41,8 @@ int main(void) {
 
   objects.clear();
 
-  pqrs::dispatcher::extra::terminate_shared_dispatcher();
+  dispatcher->terminate();
+  dispatcher = nullptr;
+
+  return 0;
 }
