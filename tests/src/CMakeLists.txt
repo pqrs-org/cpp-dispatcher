@@ -13,6 +13,7 @@ project (test)
 
 add_executable(
   test
+  hardware_time_source_test.cpp
   test.cpp
   timer_test.cpp
 )
