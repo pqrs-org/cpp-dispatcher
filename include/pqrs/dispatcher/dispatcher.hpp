@@ -235,6 +235,13 @@ public:
       // - `detach` is called in the dispatcher thread.
       // - `detach` is called from another detached function.
       //   (We have to call detached function directly in order to avoid a deadlock.)
+      //
+      //   If the running function is detached function,
+      //   the enqueued functions with `object_id` will not be called
+      //   because the current running function is not and
+      //   other functions are already erased in the above `detach(object_id)`.
+      //
+      //   Thus, we can call the `function` directly without conflict.
 
       function();
     } else {
