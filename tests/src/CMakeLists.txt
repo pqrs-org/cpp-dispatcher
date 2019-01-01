@@ -14,4 +14,5 @@ project (test)
 add_executable(
   test
   test.cpp
+  timer_test.cpp
 )
