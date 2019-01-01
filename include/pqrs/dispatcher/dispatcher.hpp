@@ -377,6 +377,7 @@ private:
   std::mutex mutex_;
   std::condition_variable cv_;
 
+  // `object_id_` is for a function after detach
   object_id object_id_;
   std::unordered_set<uint64_t> object_ids_;
   std::mutex object_ids_mutex_;
