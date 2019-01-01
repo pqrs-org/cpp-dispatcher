@@ -196,7 +196,7 @@ public:
     }
 
     if (!dispatcher_thread() && !running_detached_function()) {
-      // Wait until current running function is finised.
+      // Wait the running function if the running function is owned by object_id.
 
       std::unique_lock<std::mutex> lock(running_function_object_id_mutex_);
 
@@ -207,6 +207,10 @@ public:
 
     return true;
   }
+
+  // dispatcher guarantees that
+  // the argument `function` and enqueued functions with `object_id`
+  // are not run at the same time.
 
   void detach(const object_id& object_id,
               const std::function<void(void)>& function) {
