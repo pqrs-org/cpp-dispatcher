@@ -182,6 +182,8 @@ public:
     return true;
   }
 
+  // Note:
+  // Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
   void detach(const object_id& object_id,
               const std::function<void(void)>& function) {
     if (!detach(object_id)) {
@@ -278,6 +280,8 @@ public:
     }
   }
 
+  // Note:
+  // Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
   void enqueue(const object_id& object_id,
                const std::function<void(void)>& function,
                time_point when = when_immediately()) {
