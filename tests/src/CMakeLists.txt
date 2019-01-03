@@ -14,7 +14,6 @@ project (test)
 add_executable(
   test
   dispatcher_detach_test.cpp
-  dispatcher_multiple_thread_test.cpp
   dispatcher_recursive_test.cpp
   dispatcher_test.cpp
   dispatcher_when_test.cpp
