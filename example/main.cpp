@@ -16,8 +16,11 @@ public:
   }
 
   void hello(void) {
+    std::cout << "dispatcher_thread: " << dispatcher_thread() << std::endl;
+
     enqueue_to_dispatcher([this] {
       std::cout << "hello " << index_ << std::endl;
+      std::cout << "dispatcher_thread: " << dispatcher_thread() << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     });
   }
