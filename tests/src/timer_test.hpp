@@ -8,7 +8,7 @@ public:
   timer_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
              size_t& count,
              std::chrono::milliseconds duration,
-             const std::function<void(void)>& function)
+             std::function<void(void)> function)
       : dispatcher_client(weak_dispatcher),
         timer_(*this) {
     timer_.start(
