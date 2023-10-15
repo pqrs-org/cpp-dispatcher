@@ -23,6 +23,10 @@ public:
     timer_.stop();
   }
 
+  bool enabled(void) const {
+    return timer_.enabled();
+  }
+
   virtual ~timer_test(void) {
     timer_.stop();
 
@@ -52,9 +56,14 @@ void run_timer_test(void) {
 
         auto t = std::make_unique<timer_test>(d, count, std::chrono::milliseconds(100), [] {});
 
+        expect(t->enabled());
+
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         t->stop();
+
+        expect(!t->enabled());
+
         t = nullptr;
 
         expect(count > 2);
