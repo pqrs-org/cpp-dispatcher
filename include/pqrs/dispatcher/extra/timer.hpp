@@ -62,6 +62,19 @@ public:
     return enabled_;
   }
 
+  void set_interval(duration interval) {
+    if (interval == duration(0)) {
+      stop();
+    } else {
+      dispatcher_client_.enqueue_to_dispatcher([this, interval] {
+        ++current_function_id_;
+        interval_ = interval;
+
+        enqueue(current_function_id_);
+      });
+    }
+  }
+
 private:
   // This method is executed in the dispatcher thread.
   void call_function(int function_id) {
@@ -79,6 +92,10 @@ private:
       });
     }
 
+    enqueue(function_id);
+  }
+
+  void enqueue(int function_id) {
     dispatcher_client_.enqueue_to_dispatcher(
         [this, function_id] {
           call_function(function_id);
