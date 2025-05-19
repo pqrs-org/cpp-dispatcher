@@ -10,7 +10,7 @@ add_compile_options(-fsanitize=address)
 add_link_options(-fsanitize=address)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../../include)
-include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/../vendor/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/../../vendor/vendor/include)
 
 project(test)
 
