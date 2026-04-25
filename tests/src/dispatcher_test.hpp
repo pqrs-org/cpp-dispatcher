@@ -163,4 +163,22 @@ void run_dispatcher_test(void) {
       d.terminate();
     }
   };
+
+  "dispatcher.ignore_attach_after_terminate"_test = [] {
+    std::cout << "dispatcher.ignore_attach_after_terminate" << std::endl;
+
+    auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
+
+    {
+      pqrs::dispatcher::dispatcher d(time_source);
+
+      d.terminate();
+
+      auto object_id = pqrs::dispatcher::make_new_object_id();
+      auto result = d.attach(object_id);
+
+      expect(!result);
+      expect(!d.attached(object_id));
+    }
+  };
 }
