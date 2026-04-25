@@ -237,15 +237,15 @@ public:
       // Run detached function with dispatcher's object_id.
       // (`object_id` in arguments is already detached.)
 
-      enqueue(
-          object_id_,
-          [w, function] {
-            function();
-            w->notify();
-          },
-          when_internal_detached());
-
-      w->wait_notice();
+      if (enqueue(
+              object_id_,
+              [w, function] {
+                function();
+                w->notify();
+              },
+              when_internal_detached())) {
+        w->wait_notice();
+      }
     }
   }
 
@@ -316,11 +316,15 @@ public:
 
   // Note:
   // Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
-  void enqueue(const object_id& object_id,
+  bool enqueue(const object_id& object_id,
                std::function<void(void)> function,
                time_point when = when_immediately()) {
     {
       std::lock_guard<std::mutex> lock(mutex_);
+
+      if (exit_) {
+        return false;
+      }
 
       auto id = object_id.get();
       auto new_entry = std::make_shared<entry>(
@@ -361,6 +365,7 @@ public:
     }
 
     cv_.notify_all();
+    return true;
   }
 
   void invoke(void) {
