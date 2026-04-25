@@ -162,6 +162,7 @@ public:
     return weak_time_source_.lock();
   }
 
+  // Returns false if the dispatcher is terminating or already terminated.
   bool attach(const object_id& object_id) {
     std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
     std::lock_guard<std::mutex> queue_lock(mutex_);
@@ -312,7 +313,8 @@ public:
   }
 
   // Note:
-  // Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
+  // - Returns false if the dispatcher is terminating, already terminated, or `object_id` is not attached.
+  // - Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
   bool enqueue(const object_id& object_id,
                std::function<void(void)> function,
                time_point when = when_immediately()) {

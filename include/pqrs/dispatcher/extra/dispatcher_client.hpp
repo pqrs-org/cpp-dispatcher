@@ -18,6 +18,7 @@ public:
   dispatcher_client(std::weak_ptr<dispatcher> weak_dispatcher = get_shared_dispatcher()) : weak_dispatcher_(weak_dispatcher),
                                                                                            object_id_(make_new_object_id()) {
     if (auto d = weak_dispatcher_.lock()) {
+      // `attach` may fail if the dispatcher is terminating or already terminated.
       d->attach(object_id_);
     }
   }
@@ -43,6 +44,8 @@ public:
     }
   }
 
+  // Returns false if the dispatcher is unavailable, terminating, already
+  // terminated, or this client is no longer attached.
   bool enqueue_to_dispatcher(std::function<void(void)> function,
                              time_point when = dispatcher::when_immediately()) const {
     if (auto d = weak_dispatcher_.lock()) {
