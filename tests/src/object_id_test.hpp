@@ -2,7 +2,7 @@
 #include <iostream>
 #include <pqrs/dispatcher.hpp>
 
-void run_object_id_test(void) {
+void run_object_id_test() {
   using namespace boost::ut;
   using namespace boost::ut::literals;
 

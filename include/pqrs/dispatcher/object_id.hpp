@@ -19,26 +19,26 @@ public:
   object_id(const object_id&) = delete;
   object_id(object_id&&) = default;
 
-  ~object_id(void) {
+  ~object_id() {
     manager::erase(value_);
   }
 
-  static object_id make_new_object_id(void) {
+  static object_id make_new_object_id() {
     return object_id(manager::make());
   }
 
-  static size_t active_object_id_count(void) {
+  static size_t active_object_id_count() {
     return manager::size();
   }
 
-  uint64_t get(void) const {
+  uint64_t get() const {
     return value_;
   }
 
 private:
   class manager final {
   public:
-    static uint64_t make(void) {
+    static uint64_t make() {
       std::lock_guard<std::mutex> lock(mutex());
 
       if (set().size() >= std::numeric_limits<uint64_t>::max()) {
@@ -62,24 +62,24 @@ private:
       set().erase(value);
     }
 
-    static size_t size(void) {
+    static size_t size() {
       std::lock_guard<std::mutex> lock(mutex());
 
       return set().size();
     }
 
   private:
-    static std::mutex& mutex(void) {
+    static std::mutex& mutex() {
       static std::mutex mutex;
       return mutex;
     }
 
-    static std::unordered_set<uint64_t>& set(void) {
+    static std::unordered_set<uint64_t>& set() {
       static std::unordered_set<uint64_t> set;
       return set;
     }
 
-    static uint64_t& last_value(void) {
+    static uint64_t& last_value() {
       static uint64_t value = 0;
       return value;
     }
@@ -91,11 +91,11 @@ private:
   uint64_t value_;
 };
 
-inline object_id make_new_object_id(void) {
+inline object_id make_new_object_id() {
   return object_id::make_new_object_id();
 }
 
-inline size_t active_object_id_count(void) {
+inline size_t active_object_id_count() {
   return object_id::active_object_id_count();
 }
 

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <pqrs/dispatcher.hpp>
 
-void run_dispatcher_detach_test(void) {
+void run_dispatcher_detach_test() {
   using namespace boost::ut;
   using namespace boost::ut::literals;
 

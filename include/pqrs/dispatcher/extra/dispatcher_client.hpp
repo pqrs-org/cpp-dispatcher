@@ -23,7 +23,7 @@ public:
     }
   }
 
-  virtual ~dispatcher_client(void) {
+  virtual ~dispatcher_client() {
     if (auto d = weak_dispatcher_.lock()) {
       if (d->attached(object_id_)) {
         // You must use detach_from_dispatcher explicitly.
@@ -32,7 +32,7 @@ public:
     }
   }
 
-  void detach_from_dispatcher(void) const {
+  void detach_from_dispatcher() const {
     if (auto d = weak_dispatcher_.lock()) {
       d->detach(object_id_);
     }
@@ -55,7 +55,7 @@ public:
     return false;
   }
 
-  time_point when_now(void) const {
+  time_point when_now() const {
     if (auto d = weak_dispatcher_.lock()) {
       if (auto s = d->lock_weak_time_source()) {
         return s->now();
@@ -65,14 +65,14 @@ public:
     return dispatcher::when_immediately();
   }
 
-  bool attached(void) {
+  bool attached() {
     if (auto d = weak_dispatcher_.lock()) {
       return d->attached(object_id_);
     }
     return false;
   }
 
-  bool dispatcher_thread(void) const {
+  bool dispatcher_thread() const {
     if (auto d = weak_dispatcher_.lock()) {
       return d->dispatcher_thread();
     }

@@ -13,7 +13,7 @@ namespace dispatcher {
 namespace extra {
 class shared_dispatcher final {
 public:
-  void initialize(void) {
+  void initialize() {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!time_source_) {
@@ -25,7 +25,7 @@ public:
     }
   }
 
-  void terminate(void) {
+  void terminate() {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (dispatcher_) {
@@ -42,13 +42,13 @@ public:
     }
   }
 
-  std::shared_ptr<dispatcher> get_dispatcher(void) const {
+  std::shared_ptr<dispatcher> get_dispatcher() const {
     std::lock_guard<std::mutex> lock(mutex_);
 
     return dispatcher_;
   }
 
-  static std::shared_ptr<shared_dispatcher> get_shared_dispatcher(void) {
+  static std::shared_ptr<shared_dispatcher> get_shared_dispatcher() {
     static std::mutex mutex;
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -66,17 +66,17 @@ private:
   mutable std::mutex mutex_;
 };
 
-inline void initialize_shared_dispatcher(void) {
+inline void initialize_shared_dispatcher() {
   auto p = shared_dispatcher::get_shared_dispatcher();
   p->initialize();
 }
 
-inline void terminate_shared_dispatcher(void) {
+inline void terminate_shared_dispatcher() {
   auto p = shared_dispatcher::get_shared_dispatcher();
   p->terminate();
 }
 
-inline std::shared_ptr<dispatcher> get_shared_dispatcher(void) {
+inline std::shared_ptr<dispatcher> get_shared_dispatcher() {
   auto p = shared_dispatcher::get_shared_dispatcher();
   return p->get_dispatcher();
 }

@@ -144,7 +144,7 @@ public:
     attach(object_id_);
   }
 
-  ~dispatcher(void) {
+  ~dispatcher() {
     if (worker_thread_.joinable()) {
       terminate();
     }
@@ -156,7 +156,7 @@ public:
     weak_time_source_ = value;
   }
 
-  std::shared_ptr<time_source> lock_weak_time_source(void) const {
+  std::shared_ptr<time_source> lock_weak_time_source() const {
     std::lock_guard<std::mutex> lock(weak_time_source_mutex_);
 
     return weak_time_source_.lock();
@@ -253,17 +253,17 @@ public:
     return object_ids_.find(object_id.get()) != std::end(object_ids_);
   }
 
-  bool dispatcher_thread(void) const {
+  bool dispatcher_thread() const {
     return std::this_thread::get_id() == worker_thread_id_;
   }
 
-  bool running_detached_function(void) const {
+  bool running_detached_function() const {
     std::lock_guard<std::mutex> lock(running_function_object_id_mutex_);
 
     return running_function_object_id_ == object_id_.get();
   }
 
-  void terminate(void) {
+  void terminate() {
     // We should separate `~dispatcher` and `terminate` to ensure dispatcher exists until all jobs are processed.
     //
     // Example:
@@ -374,7 +374,7 @@ public:
     return true;
   }
 
-  void invoke(void) {
+  void invoke() {
     cv_.notify_all();
   }
 
@@ -396,15 +396,15 @@ private:
                              when_(when) {
     }
 
-    uint64_t get_object_id_value(void) const {
+    uint64_t get_object_id_value() const {
       return object_id_value_;
     }
 
-    time_point get_when(void) const {
+    time_point get_when() const {
       return when_;
     }
 
-    void call_function(void) const {
+    void call_function() const {
       function_();
     }
 

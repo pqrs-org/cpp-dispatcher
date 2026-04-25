@@ -14,22 +14,22 @@ namespace pqrs {
 namespace dispatcher {
 class time_source {
 public:
-  virtual time_point now(void) = 0;
+  virtual time_point now() = 0;
 };
 
 class hardware_time_source final : public time_source {
 public:
-  virtual time_point now(void) {
+  virtual time_point now() {
     return std::chrono::time_point_cast<duration>(std::chrono::system_clock::now());
   }
 };
 
 class pseudo_time_source final : public time_source {
 public:
-  pseudo_time_source(void) : now_(duration(0)) {
+  pseudo_time_source() : now_(duration(0)) {
   }
 
-  virtual time_point now(void) {
+  virtual time_point now() {
     std::lock_guard<std::mutex> lock(mutex_);
 
     return now_;

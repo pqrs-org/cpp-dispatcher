@@ -6,7 +6,7 @@
 #include "object_id_test.hpp"
 #include "timer_test.hpp"
 
-int main(void) {
+int main() {
   run_dispatcher_detach_test();
   run_dispatcher_recursive_test();
   run_dispatcher_test();

@@ -16,14 +16,14 @@ public:
         when_now() + duration);
   }
 
-  virtual ~when_hardware_time_source_test(void) {
+  virtual ~when_hardware_time_source_test() {
     detach_from_dispatcher([] {
     });
   }
 };
 } // namespace
 
-void run_hardware_time_source_test(void) {
+void run_hardware_time_source_test() {
   using namespace boost::ut;
   using namespace boost::ut::literals;
 

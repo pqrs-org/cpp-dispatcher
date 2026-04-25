@@ -28,7 +28,7 @@ public:
                                                 enabled_(false) {
   }
 
-  ~timer(void) {
+  ~timer() {
     if (dispatcher_client_.attached()) {
       // Do not release timer before `dispatcher_client_` is detached.
       abort();
@@ -47,7 +47,7 @@ public:
     });
   }
 
-  void stop(void) {
+  void stop() {
     enabled_ = false;
 
     dispatcher_client_.enqueue_to_dispatcher([this] {
@@ -57,7 +57,7 @@ public:
     });
   }
 
-  bool enabled(void) const {
+  bool enabled() const {
     // `enabled_` represents the last requested state from the caller thread.
     return enabled_;
   }

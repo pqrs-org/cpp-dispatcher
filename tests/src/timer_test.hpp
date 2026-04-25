@@ -18,14 +18,14 @@ public:
     }
   }
 
-  virtual ~timer_test(void) {
+  virtual ~timer_test() {
     timer_.stop();
 
     detach_from_dispatcher([] {
     });
   }
 
-  void stop(void) {
+  void stop() {
     timer_.stop();
   }
 
@@ -39,7 +39,7 @@ public:
         duration);
   }
 
-  bool enabled(void) const {
+  bool enabled() const {
     return timer_.enabled();
   }
 
@@ -53,7 +53,7 @@ private:
 };
 } // namespace
 
-void run_timer_test(void) {
+void run_timer_test() {
   using namespace boost::ut;
   using namespace boost::ut::literals;
 

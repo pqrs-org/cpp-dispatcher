@@ -8,12 +8,12 @@ public:
   recursive_detach_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher) {
   }
 
-  virtual ~recursive_detach_test(void) {
+  virtual ~recursive_detach_test() {
     detach_from_dispatcher([] {
     });
   }
 
-  void f(void) {
+  void f() {
     enqueue_to_dispatcher([this] {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -32,7 +32,7 @@ public:
                                                                     cleanup_in_dispatcher_thread_(cleanup_in_dispatcher_thread) {
   }
 
-  void run_detach_in_dispatcher_thread(void) {
+  void run_detach_in_dispatcher_thread() {
     enqueue_to_dispatcher([this] {
       detach_from_dispatcher([this] {
         cleanup_in_dispatcher_thread_ = dispatcher_thread();
@@ -79,12 +79,12 @@ public:
     dispatcher_->attach(object_id_);
   }
 
-  ~dispatcher_recursive_class(void) {
+  ~dispatcher_recursive_class() {
     dispatcher_->terminate();
     dispatcher_ = nullptr;
   }
 
-  void enqueue(void) {
+  void enqueue() {
     dispatcher_->enqueue(
         object_id_,
         [this] {
@@ -106,7 +106,7 @@ private:
 };
 } // namespace
 
-void run_dispatcher_recursive_test(void) {
+void run_dispatcher_recursive_test() {
   using namespace boost::ut;
   using namespace boost::ut::literals;
 
