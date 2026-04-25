@@ -172,7 +172,7 @@ public:
     // Erase `object_id` from object_ids_ if exists.
 
     {
-      std::lock_guard<std::mutex> lock(object_ids_mutex_);
+      std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
 
       auto it = object_ids_.find(object_id.get());
 
@@ -181,12 +181,8 @@ public:
       }
 
       object_ids_.erase(it);
-    }
 
-    // Erase entries
-
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
+      std::lock_guard<std::mutex> queue_lock(mutex_);
 
       queue_.erase(std::remove_if(std::begin(queue_),
                                   std::end(queue_),
@@ -217,19 +213,19 @@ public:
       return;
     }
 
-    // Skip `function` if dispatcher is terminating or already terminated.
-
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-
-      if (exit_) {
-        return;
-      }
-    }
-
+    //
     // Execute function
+    //
 
     if (dispatcher_thread()) {
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        if (exit_) {
+          return;
+        }
+      }
+
       function();
     } else {
       auto w = make_thread_wait();
@@ -319,14 +315,21 @@ public:
   bool enqueue(const object_id& object_id,
                std::function<void(void)> function,
                time_point when = when_immediately()) {
+    auto id = object_id.get();
+
     {
-      std::lock_guard<std::mutex> lock(mutex_);
+      std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
+
+      if (object_ids_.find(id) == std::end(object_ids_)) {
+        return false;
+      }
+
+      std::lock_guard<std::mutex> queue_lock(mutex_);
 
       if (exit_) {
         return false;
       }
 
-      auto id = object_id.get();
       auto new_entry = std::make_shared<entry>(
           id,
           [this, id, function] {
@@ -417,6 +420,7 @@ private:
 
   std::deque<std::shared_ptr<entry>> queue_;
   bool exit_;
+  // Lock order: acquire object_ids_mutex_ before mutex_ if both are needed.
   std::mutex mutex_;
   std::condition_variable cv_;
 
