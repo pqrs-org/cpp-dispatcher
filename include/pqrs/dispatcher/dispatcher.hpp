@@ -162,10 +162,16 @@ public:
     return weak_time_source_.lock();
   }
 
-  void attach(const object_id& object_id) {
-    std::lock_guard<std::mutex> lock(object_ids_mutex_);
+  bool attach(const object_id& object_id) {
+    std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
+    std::lock_guard<std::mutex> queue_lock(mutex_);
+
+    if (exit_) {
+      return false;
+    }
 
     object_ids_.insert(object_id.get());
+    return true;
   }
 
   bool detach(const object_id& object_id) {
@@ -420,8 +426,11 @@ private:
 
   std::deque<std::shared_ptr<entry>> queue_;
   bool exit_;
+
+  // Protects queue_, exit_, and the worker thread wait condition.
   // Lock order: acquire object_ids_mutex_ before mutex_ if both are needed.
   std::mutex mutex_;
+
   std::condition_variable cv_;
 
   // `object_id_` is for a function after detach
