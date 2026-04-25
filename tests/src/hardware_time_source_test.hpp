@@ -16,7 +16,7 @@ public:
         when_now() + duration);
   }
 
-  virtual ~when_hardware_time_source_test() {
+  ~when_hardware_time_source_test() override {
     detach_from_dispatcher([] {
     });
   }

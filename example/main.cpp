@@ -9,7 +9,7 @@ public:
                        index_(index) {
   }
 
-  virtual ~object1() {
+  ~object1() override {
     detach_from_dispatcher([this] {
       std::cout << "detached " << index_ << std::endl;
     });
@@ -45,7 +45,7 @@ int main() {
   objects.clear();
 
   dispatcher->terminate();
-  dispatcher = nullptr;
+  dispatcher.reset();
 
   return 0;
 }

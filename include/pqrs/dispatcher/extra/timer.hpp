@@ -9,9 +9,7 @@
 #include "dispatcher_client.hpp"
 #include <atomic>
 
-namespace pqrs {
-namespace dispatcher {
-namespace extra {
+namespace pqrs::dispatcher::extra {
 
 // Usage Note:
 //
@@ -24,7 +22,7 @@ class timer final {
 public:
   timer(dispatcher_client& dispatcher_client) : dispatcher_client_(dispatcher_client),
                                                 current_function_id_(0),
-                                                interval_(0),
+                                                interval_(duration::zero()),
                                                 enabled_(false) {
   }
 
@@ -36,7 +34,7 @@ public:
   }
 
   // First, `function` is called once, and then `function` is called every interval specified by `interval`.
-  void start(std::function<void(void)> function,
+  void start(std::function<void()> function,
              duration interval) {
     enabled_ = dispatcher_client_.enqueue_to_dispatcher([this, function, interval] {
       ++current_function_id_;
@@ -53,7 +51,7 @@ public:
     dispatcher_client_.enqueue_to_dispatcher([this] {
       ++current_function_id_;
       function_ = nullptr;
-      interval_ = duration(0);
+      interval_ = duration::zero();
     });
   }
 
@@ -65,11 +63,11 @@ public:
   // Update the interval.
   // Any `function` call reserved before calling this method will be canceled, and the `function` will be called after `interval` duration.
   //
-  // Special cases:.
-  // - If `interval` == duration(0), this method works same as `stop`.
+  // Special cases:
+  // - If `interval` == duration::zero(), this method works same as `stop`.
   // - If `interval` is same as the current interval, this method does nothing.
   void set_interval(duration interval) {
-    if (interval == duration(0)) {
+    if (interval == duration::zero()) {
       stop();
     } else {
       if (!dispatcher_client_.enqueue_to_dispatcher([this, interval] {
@@ -122,11 +120,9 @@ private:
 
   dispatcher_client& dispatcher_client_;
   int current_function_id_;
-  std::function<void(void)> function_;
+  std::function<void()> function_;
   duration interval_;
 
   std::atomic<bool> enabled_;
 };
-} // namespace extra
-} // namespace dispatcher
-} // namespace pqrs
+} // namespace pqrs::dispatcher::extra

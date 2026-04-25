@@ -26,7 +26,7 @@ void run_dispatcher_test() {
       auto object_id = pqrs::dispatcher::make_new_object_id();
       d.attach(object_id);
 
-      expect(d.dispatcher_thread() == false);
+      expect(!d.dispatcher_thread());
 
       auto start = std::chrono::steady_clock::now();
 
@@ -40,7 +40,7 @@ void run_dispatcher_test() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
               }
 
-              expect(d.dispatcher_thread() == true);
+              expect(d.dispatcher_thread());
             });
       }
 

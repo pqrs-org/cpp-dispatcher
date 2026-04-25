@@ -10,9 +10,7 @@
 #include "shared_dispatcher.hpp"
 #include <memory>
 
-namespace pqrs {
-namespace dispatcher {
-namespace extra {
+namespace pqrs::dispatcher::extra {
 class dispatcher_client {
 public:
   dispatcher_client(std::weak_ptr<dispatcher> weak_dispatcher = get_shared_dispatcher()) : weak_dispatcher_(weak_dispatcher),
@@ -38,7 +36,7 @@ public:
     }
   }
 
-  void detach_from_dispatcher(std::function<void(void)> function) const {
+  void detach_from_dispatcher(std::function<void()> function) const {
     if (auto d = weak_dispatcher_.lock()) {
       d->detach(object_id_, function);
     }
@@ -46,7 +44,7 @@ public:
 
   // Returns false if the dispatcher is unavailable, terminating, already
   // terminated, or this client is no longer attached.
-  bool enqueue_to_dispatcher(std::function<void(void)> function,
+  bool enqueue_to_dispatcher(std::function<void()> function,
                              time_point when = dispatcher::when_immediately()) const {
     if (auto d = weak_dispatcher_.lock()) {
       return d->enqueue(object_id_, function, when);
@@ -83,6 +81,4 @@ protected:
   std::weak_ptr<dispatcher> weak_dispatcher_;
   object_id object_id_;
 };
-} // namespace extra
-} // namespace dispatcher
-} // namespace pqrs
+} // namespace pqrs::dispatcher::extra

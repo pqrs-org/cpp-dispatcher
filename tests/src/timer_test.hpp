@@ -8,7 +8,7 @@ public:
   timer_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
              size_t& count,
              std::chrono::milliseconds duration,
-             std::function<void(void)> function,
+             std::function<void()> function,
              bool start_on_construct = true)
       : dispatcher_client(weak_dispatcher),
         count_(count),
@@ -18,7 +18,7 @@ public:
     }
   }
 
-  virtual ~timer_test() {
+  ~timer_test() override {
     timer_.stop();
 
     detach_from_dispatcher([] {
@@ -30,7 +30,7 @@ public:
   }
 
   void start(std::chrono::milliseconds duration,
-             std::function<void(void)> function) {
+             std::function<void()> function) {
     timer_.start(
         [this, function] {
           ++count_;

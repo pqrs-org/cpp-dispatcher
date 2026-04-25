@@ -8,6 +8,7 @@
 
 #include "object_id.hpp"
 #include "time_source.hpp"
+#include <algorithm>
 #include <deque>
 #include <exception>
 #include <functional>
@@ -16,15 +17,13 @@
 #include <pqrs/thread_wait.hpp>
 #include <thread>
 
-namespace pqrs {
-namespace dispatcher {
+namespace pqrs::dispatcher {
 class dispatcher final {
 public:
   dispatcher(const dispatcher&) = delete;
 
   dispatcher(std::weak_ptr<time_source> weak_time_source) : weak_time_source_(weak_time_source),
                                                             worker_thread_id_wait_(make_thread_wait()),
-                                                            exit_(false),
                                                             object_id_(make_new_object_id()) {
     worker_thread_ = std::thread([this] {
       worker_thread_id_ = std::this_thread::get_id();
@@ -38,7 +37,7 @@ public:
 
           // ----------------------------------------
 
-          std::function<duration(void)> calculate_duration([this] {
+          const auto calculate_duration = [this] {
             auto now = when_immediately();
             auto when = when_immediately();
 
@@ -57,15 +56,15 @@ public:
               return when - now;
             }
 
-            return duration(0);
-          });
+            return duration::zero();
+          };
 
           // ----------------------------------------
           // Wait
 
           auto d = calculate_duration();
 
-          if (d == duration(0)) {
+          if (d == duration::zero()) {
             cv_.wait(lock, [this] {
               return exit_ || !queue_.empty();
             });
@@ -80,7 +79,7 @@ public:
                 return false;
               }
 
-              if (calculate_duration() == duration(0)) {
+              if (calculate_duration() == duration::zero()) {
                 return true;
               }
 
@@ -99,7 +98,7 @@ public:
 
           d = calculate_duration();
 
-          if (d > duration(0)) {
+          if (d > duration::zero()) {
             continue;
           }
 
@@ -164,8 +163,7 @@ public:
 
   // Returns false if the dispatcher is terminating or already terminated.
   bool attach(const object_id& object_id) {
-    std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
-    std::lock_guard<std::mutex> queue_lock(mutex_);
+    std::scoped_lock lock(object_ids_mutex_, mutex_);
 
     if (exit_) {
       return false;
@@ -179,24 +177,17 @@ public:
     // Erase `object_id` from object_ids_ if exists.
 
     {
-      std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
+      std::scoped_lock lock(object_ids_mutex_, mutex_);
 
-      auto it = object_ids_.find(object_id.get());
-
-      if (it == std::end(object_ids_)) {
+      if (!object_ids_.contains(object_id.get())) {
         return false;
       }
 
-      object_ids_.erase(it);
+      object_ids_.erase(object_id.get());
 
-      std::lock_guard<std::mutex> queue_lock(mutex_);
-
-      queue_.erase(std::remove_if(std::begin(queue_),
-                                  std::end(queue_),
-                                  [&](auto&& e) {
-                                    return e->get_object_id_value() == object_id.get();
-                                  }),
-                   std::end(queue_));
+      std::erase_if(queue_, [&](const auto& e) {
+        return e->get_object_id_value() == object_id.get();
+      });
     }
 
     if (!dispatcher_thread()) {
@@ -218,7 +209,7 @@ public:
   // - If `detach` is called from the dispatcher thread, `function` is executed inline.
   //   In that case, `function` might still run even if `terminate()` starts concurrently after `detach` begins.
   void detach(const object_id& object_id,
-              std::function<void(void)> function) {
+              std::function<void()> function) {
     if (!detach(object_id)) {
       return;
     }
@@ -250,7 +241,7 @@ public:
   bool attached(const object_id& object_id) {
     std::lock_guard<std::mutex> lock(object_ids_mutex_);
 
-    return object_ids_.find(object_id.get()) != std::end(object_ids_);
+    return object_ids_.contains(object_id.get());
   }
 
   bool dispatcher_thread() const {
@@ -270,7 +261,7 @@ public:
     // ----------------------------------------
     // class example final {
     // public:
-    //   example(void) : object_id_(pqrs::dispatcher::make_new_object_id()) {
+    //   example() : object_id_(pqrs::dispatcher::make_new_object_id()) {
     //     dispatcher_ = std::make_unique<pqrs::dispatcher::dispatcher>();
     //     dispatcher_->attach(object_id_);
     //
@@ -316,18 +307,16 @@ public:
   // - Returns false if the dispatcher is terminating, already terminated, or `object_id` is not attached.
   // - Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
   bool enqueue(const object_id& object_id,
-               std::function<void(void)> function,
+               std::function<void()> function,
                time_point when = when_immediately()) {
     auto id = object_id.get();
 
     {
-      std::lock_guard<std::mutex> object_ids_lock(object_ids_mutex_);
+      std::scoped_lock lock(object_ids_mutex_, mutex_);
 
-      if (object_ids_.find(id) == std::end(object_ids_)) {
+      if (!object_ids_.contains(id)) {
         return false;
       }
-
-      std::lock_guard<std::mutex> queue_lock(mutex_);
 
       if (exit_) {
         return false;
@@ -341,7 +330,7 @@ public:
             {
               std::lock_guard<std::mutex> lock(object_ids_mutex_);
 
-              if (object_ids_.find(id) == std::end(object_ids_)) {
+              if (!object_ids_.contains(id)) {
                 return;
               }
             }
@@ -356,17 +345,14 @@ public:
         queue_.push_front(new_entry);
       } else {
         // queue_ must be sorted by when_.
-
-        auto it = std::find_if(std::rbegin(queue_),
-                               std::rend(queue_),
-                               [&](auto&& e) {
-                                 return e->get_when() <= when;
-                               });
-        if (it == std::rend(queue_)) {
-          queue_.push_front(new_entry);
-        } else {
-          queue_.insert(it.base(), new_entry);
-        }
+        auto it = std::ranges::upper_bound(
+            queue_,
+            when,
+            std::less<>{},
+            [](const auto& e) {
+              return e->get_when();
+            });
+        queue_.insert(it, new_entry);
       }
     }
 
@@ -379,7 +365,7 @@ public:
   }
 
   static constexpr time_point when_internal_detached() {
-    return time_point(duration(0));
+    return time_point(duration::zero());
   }
 
   static constexpr time_point when_immediately() {
@@ -390,7 +376,7 @@ private:
   class entry final {
   public:
     entry(uint64_t object_id_value,
-          std::function<void(void)> function,
+          std::function<void()> function,
           time_point when) : object_id_value_(object_id_value),
                              function_(function),
                              when_(when) {
@@ -410,7 +396,7 @@ private:
 
   private:
     uint64_t object_id_value_;
-    std::function<void(void)> function_;
+    std::function<void()> function_;
     time_point when_;
   };
 
@@ -422,7 +408,7 @@ private:
   std::shared_ptr<thread_wait> worker_thread_id_wait_;
 
   std::deque<std::shared_ptr<entry>> queue_;
-  bool exit_;
+  bool exit_ = false;
 
   // Protects queue_, exit_, and the worker thread wait condition.
   // Lock order: acquire object_ids_mutex_ before mutex_ if both are needed.
@@ -439,5 +425,4 @@ private:
   mutable std::mutex running_function_object_id_mutex_;
   std::condition_variable running_function_object_id_cv_;
 };
-} // namespace dispatcher
-} // namespace pqrs
+} // namespace pqrs::dispatcher

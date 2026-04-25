@@ -12,8 +12,7 @@
 #include <ostream>
 #include <unordered_set>
 
-namespace pqrs {
-namespace dispatcher {
+namespace pqrs::dispatcher {
 class object_id final {
 public:
   object_id(const object_id&) = delete;
@@ -47,8 +46,7 @@ private:
 
       while (true) {
         auto value = ++(last_value());
-        auto it = set().find(value);
-        if (it == std::end(set())) {
+        if (!set().contains(value)) {
           set().insert(value);
           last_value() = value;
           return value;
@@ -103,5 +101,4 @@ inline std::ostream& operator<<(std::ostream& stream, const object_id& value) {
   stream << value.get();
   return stream;
 }
-} // namespace dispatcher
-} // namespace pqrs
+} // namespace pqrs::dispatcher

@@ -8,7 +8,7 @@ public:
   recursive_detach_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher) {
   }
 
-  virtual ~recursive_detach_test() {
+  ~recursive_detach_test() override {
     detach_from_dispatcher([] {
     });
   }
@@ -81,7 +81,7 @@ public:
 
   ~dispatcher_recursive_class() {
     dispatcher_->terminate();
-    dispatcher_ = nullptr;
+    dispatcher_.reset();
   }
 
   void enqueue() {

@@ -8,9 +8,7 @@
 
 #include "../dispatcher.hpp"
 
-namespace pqrs {
-namespace dispatcher {
-namespace extra {
+namespace pqrs::dispatcher::extra {
 class shared_dispatcher final {
 public:
   void initialize() {
@@ -34,11 +32,11 @@ public:
       // If we release the lock before waiting for terminate, another thread may
       // create a new shared dispatcher while the previous one is still stopping.
       dispatcher_->terminate();
-      dispatcher_ = nullptr;
+      dispatcher_.reset();
     }
 
     if (time_source_) {
-      time_source_ = nullptr;
+      time_source_.reset();
     }
   }
 
@@ -80,6 +78,4 @@ inline std::shared_ptr<dispatcher> get_shared_dispatcher() {
   auto p = shared_dispatcher::get_shared_dispatcher();
   return p->get_dispatcher();
 }
-} // namespace extra
-} // namespace dispatcher
-} // namespace pqrs
+} // namespace pqrs::dispatcher::extra
