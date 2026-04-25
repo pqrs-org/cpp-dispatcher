@@ -72,8 +72,12 @@ public:
   void set_interval(duration interval) {
     if (interval == duration(0)) {
       stop();
-    } else if (interval != interval_) {
+    } else {
       dispatcher_client_.enqueue_to_dispatcher([this, interval] {
+        if (interval_ == interval) {
+          return;
+        }
+
         ++current_function_id_;
         interval_ = interval;
 
