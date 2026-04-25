@@ -8,15 +8,14 @@ public:
   timer_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
              size_t& count,
              std::chrono::milliseconds duration,
-             std::function<void(void)> function)
+             std::function<void(void)> function,
+             bool start_on_construct = true)
       : dispatcher_client(weak_dispatcher),
+        count_(count),
         timer_(*this) {
-    timer_.start(
-        [&count, function] {
-          ++count;
-          function();
-        },
-        duration);
+    if (start_on_construct) {
+      start(duration, function);
+    }
   }
 
   virtual ~timer_test(void) {
@@ -30,6 +29,16 @@ public:
     timer_.stop();
   }
 
+  void start(std::chrono::milliseconds duration,
+             std::function<void(void)> function) {
+    timer_.start(
+        [this, function] {
+          ++count_;
+          function();
+        },
+        duration);
+  }
+
   bool enabled(void) const {
     return timer_.enabled();
   }
@@ -39,6 +48,7 @@ public:
   }
 
 private:
+  size_t& count_;
   pqrs::dispatcher::extra::timer timer_;
 };
 } // namespace
@@ -149,6 +159,27 @@ void run_timer_test(void) {
       expect(count < 8);
 
       d->terminate();
+    }
+  };
+
+  "dispatcher.timer (ignore start after terminate)"_test = [] {
+    std::cout << "dispatcher.timer (ignore start after terminate)" << std::endl;
+
+    auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
+
+    {
+      size_t count = 0;
+
+      auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
+
+      auto t = std::make_shared<timer_test>(d, count, std::chrono::milliseconds(100), [] {}, false);
+
+      d->terminate();
+
+      t->start(std::chrono::milliseconds(100), [] {});
+
+      expect(!t->enabled());
+      expect(count == 0_ul);
     }
   };
 }

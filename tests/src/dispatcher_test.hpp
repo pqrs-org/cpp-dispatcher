@@ -121,7 +121,7 @@ void run_dispatcher_test(void) {
 
       d.terminate();
 
-      d.enqueue(
+      auto result = d.enqueue(
           object_id,
           [&count] {
             ++count;
@@ -129,7 +129,38 @@ void run_dispatcher_test(void) {
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+      expect(!result);
       expect(count == 0);
+    }
+  };
+
+  "dispatcher.ignore_enqueue_after_detach"_test = [] {
+    std::cout << "dispatcher.ignore_enqueue_after_detach" << std::endl;
+
+    auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
+
+    {
+      size_t count = 0;
+
+      pqrs::dispatcher::dispatcher d(time_source);
+
+      auto object_id = pqrs::dispatcher::make_new_object_id();
+      d.attach(object_id);
+
+      d.detach(object_id);
+
+      auto result = d.enqueue(
+          object_id,
+          [&count] {
+            ++count;
+          });
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      expect(!result);
+      expect(count == 0);
+
+      d.terminate();
     }
   };
 }
