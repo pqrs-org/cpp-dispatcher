@@ -23,6 +23,32 @@ public:
   }
 };
 
+class detach_from_dispatcher_test final : public pqrs::dispatcher::extra::dispatcher_client {
+public:
+  detach_from_dispatcher_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
+                              bool& cleanup_ran,
+                              bool& cleanup_in_dispatcher_thread) : dispatcher_client(weak_dispatcher),
+                                                                    cleanup_ran_(cleanup_ran),
+                                                                    cleanup_in_dispatcher_thread_(cleanup_in_dispatcher_thread) {
+  }
+
+  void run_detach_in_dispatcher_thread(void) {
+    enqueue_to_dispatcher([this] {
+      detach_from_dispatcher([this] {
+        cleanup_in_dispatcher_thread_ = dispatcher_thread();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        cleanup_ran_ = true;
+      });
+
+      boost::ut::expect(cleanup_ran_);
+    });
+  }
+
+private:
+  bool& cleanup_ran_;
+  bool& cleanup_in_dispatcher_thread_;
+};
+
 void dispatcher_recursive_function(pqrs::dispatcher::dispatcher& d,
                                    const pqrs::dispatcher::object_id& id,
                                    size_t& count) {
@@ -102,6 +128,32 @@ void run_dispatcher_recursive_test(void) {
 
       objects.clear();
 
+      d->terminate();
+    }
+  };
+
+  "dispatcher_client.detach_from_dispatcher waits cleanup in dispatcher thread"_test = [] {
+    std::cout << "dispatcher_client.detach_from_dispatcher waits cleanup in dispatcher thread" << std::endl;
+
+    auto time_source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
+
+    {
+      bool cleanup_ran = false;
+      bool cleanup_in_dispatcher_thread = false;
+
+      auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
+      auto t = std::make_unique<detach_from_dispatcher_test>(d,
+                                                             cleanup_ran,
+                                                             cleanup_in_dispatcher_thread);
+
+      t->run_detach_in_dispatcher_thread();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+      expect(cleanup_ran);
+      expect(cleanup_in_dispatcher_thread);
+
+      t.reset();
       d->terminate();
     }
   };

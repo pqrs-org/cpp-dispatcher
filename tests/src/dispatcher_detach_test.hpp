@@ -98,6 +98,42 @@ void run_dispatcher_detach_test(void) {
       d.terminate();
     }
 
+    // Wait detached function even if terminate starts concurrently after
+    // detach begins in the dispatcher thread.
+
+    {
+      size_t count = 0;
+
+      pqrs::dispatcher::dispatcher d(time_source);
+
+      auto object_id = pqrs::dispatcher::make_new_object_id();
+      d.attach(object_id);
+
+      auto ready = pqrs::make_thread_wait();
+
+      std::thread terminate_thread([&] {
+        ready->wait_notice();
+        d.terminate();
+      });
+
+      d.enqueue(
+          object_id,
+          [&] {
+            d.detach(
+                object_id,
+                [&] {
+                  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                  ++count;
+                });
+
+            ready->notify();
+          });
+
+      terminate_thread.join();
+
+      expect(count == 1);
+    }
+
     // Call `detach` frequently
 
     {

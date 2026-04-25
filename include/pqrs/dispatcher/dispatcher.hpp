@@ -212,7 +212,10 @@ public:
   }
 
   // Note:
-  // Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
+  // - `function` is intended for cleanup and `detach` does not return until `function` is finished.
+  // - Do not wait (thread::join, etc.) in `function` in order to avoid a deadlock.
+  // - If `detach` is called from the dispatcher thread, `function` is executed inline.
+  //   In that case, `function` might still run even if `terminate()` starts concurrently after `detach` begins.
   void detach(const object_id& object_id,
               std::function<void(void)> function) {
     if (!detach(object_id)) {
@@ -224,14 +227,6 @@ public:
     //
 
     if (dispatcher_thread()) {
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-
-        if (exit_) {
-          return;
-        }
-      }
-
       function();
     } else {
       auto w = make_thread_wait();
