@@ -99,16 +99,21 @@ private:
       auto f = function_;
 
       // The `function_` call must be wrapped in enqueue_to_dispatcher in order to avoid heap-use-after-free when the timer itself is destroyed in `function_`.
-      dispatcher_client_.enqueue_to_dispatcher([f] {
-        f();
-      });
+      if (!dispatcher_client_.enqueue_to_dispatcher([f] {
+            f();
+          })) {
+        enabled_ = false;
+        return;
+      }
     }
 
-    enqueue(function_id);
+    if (!enqueue(function_id)) {
+      enabled_ = false;
+    }
   }
 
-  void enqueue(int function_id) {
-    dispatcher_client_.enqueue_to_dispatcher(
+  bool enqueue(int function_id) {
+    return dispatcher_client_.enqueue_to_dispatcher(
         [this, function_id] {
           call_function(function_id);
         },
