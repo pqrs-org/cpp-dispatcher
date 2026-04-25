@@ -38,9 +38,7 @@ public:
   // First, `function` is called once, and then `function` is called every interval specified by `interval`.
   void start(std::function<void(void)> function,
              duration interval) {
-    enabled_ = true;
-
-    dispatcher_client_.enqueue_to_dispatcher([this, function, interval] {
+    enabled_ = dispatcher_client_.enqueue_to_dispatcher([this, function, interval] {
       ++current_function_id_;
       function_ = function;
       interval_ = interval;
@@ -74,16 +72,18 @@ public:
     if (interval == duration(0)) {
       stop();
     } else {
-      dispatcher_client_.enqueue_to_dispatcher([this, interval] {
-        if (interval_ == interval) {
-          return;
-        }
+      if (!dispatcher_client_.enqueue_to_dispatcher([this, interval] {
+            if (interval_ == interval) {
+              return;
+            }
 
-        ++current_function_id_;
-        interval_ = interval;
+            ++current_function_id_;
+            interval_ = interval;
 
-        enqueue(current_function_id_);
-      });
+            enqueue(current_function_id_);
+          })) {
+        enabled_ = false;
+      }
     }
   }
 
