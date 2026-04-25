@@ -43,11 +43,13 @@ public:
     }
   }
 
-  void enqueue_to_dispatcher(std::function<void(void)> function,
+  bool enqueue_to_dispatcher(std::function<void(void)> function,
                              time_point when = dispatcher::when_immediately()) const {
     if (auto d = weak_dispatcher_.lock()) {
-      d->enqueue(object_id_, function, when);
+      return d->enqueue(object_id_, function, when);
     }
+
+    return false;
   }
 
   time_point when_now(void) const {
