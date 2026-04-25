@@ -9,13 +9,13 @@ public:
                        index_(index) {
   }
 
-  virtual ~object1(void) {
+  virtual ~object1() {
     detach_from_dispatcher([this] {
       std::cout << "detached " << index_ << std::endl;
     });
   }
 
-  void hello(void) {
+  void hello() {
     std::cout << "dispatcher_thread: " << dispatcher_thread() << std::endl;
 
     enqueue_to_dispatcher([this] {
@@ -29,7 +29,7 @@ private:
   int index_;
 };
 
-int main(void) {
+int main() {
   std::vector<std::unique_ptr<object1>> objects;
 
   auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
