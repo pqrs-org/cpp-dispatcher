@@ -29,6 +29,10 @@ public:
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (dispatcher_) {
+      // Keep `dispatcher_->terminate()` inside the lock in order to serialize
+      // `initialize`, `get_dispatcher`, and `terminate`.
+      // If we release the lock before waiting for terminate, another thread may
+      // create a new shared dispatcher while the previous one is still stopping.
       dispatcher_->terminate();
       dispatcher_ = nullptr;
     }
