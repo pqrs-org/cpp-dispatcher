@@ -60,6 +60,7 @@ public:
   }
 
   bool enabled(void) const {
+    // `enabled_` represents the last requested state from the caller thread.
     return enabled_;
   }
 
