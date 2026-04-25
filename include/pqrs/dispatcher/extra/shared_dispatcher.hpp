@@ -39,6 +39,8 @@ public:
   }
 
   std::shared_ptr<dispatcher> get_dispatcher(void) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+
     return dispatcher_;
   }
 
