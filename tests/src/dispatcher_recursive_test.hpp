@@ -14,12 +14,12 @@ public:
   }
 
   void f() {
-    enqueue_to_dispatcher([this] {
+    boost::ut::expect(enqueue_to_dispatcher([this] {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       detach_from_dispatcher([] {
       });
-    });
+    }));
   }
 };
 
@@ -33,7 +33,7 @@ public:
   }
 
   void run_detach_in_dispatcher_thread() {
-    enqueue_to_dispatcher([this] {
+    boost::ut::expect(enqueue_to_dispatcher([this] {
       detach_from_dispatcher([this] {
         cleanup_in_dispatcher_thread_ = dispatcher_thread();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -41,7 +41,7 @@ public:
       });
 
       boost::ut::expect(cleanup_ran_);
-    });
+    }));
   }
 
 private:
@@ -54,17 +54,17 @@ void dispatcher_recursive_function(pqrs::dispatcher::dispatcher& d,
                                    size_t& count) {
   ++count;
   if (count < 5) {
-    d.enqueue(
+    boost::ut::expect(d.enqueue(
         id,
         [&d, &id, &count] {
           dispatcher_recursive_function(d, id, count);
-        });
+        }));
   } else if (count == 5) {
-    d.enqueue(
+    boost::ut::expect(d.enqueue(
         id,
         [] {
           std::cout << "dispatcher_recursive_function finished" << std::endl;
-        });
+        }));
   }
 }
 
@@ -76,7 +76,7 @@ public:
 
     dispatcher_ = std::make_unique<pqrs::dispatcher::dispatcher>(time_source_);
 
-    dispatcher_->attach(object_id_);
+    boost::ut::expect(dispatcher_->attach(object_id_));
   }
 
   ~dispatcher_recursive_class() {
@@ -85,16 +85,16 @@ public:
   }
 
   void enqueue() {
-    dispatcher_->enqueue(
+    boost::ut::expect(dispatcher_->enqueue(
         object_id_,
         [this] {
-          dispatcher_->enqueue(
+          boost::ut::expect(dispatcher_->enqueue(
               object_id_,
               [this] {
                 ++count_;
                 std::cout << "dispatcher_recursive_class finished" << std::endl;
-              });
-        });
+              }));
+        }));
   }
 
 private:
@@ -168,11 +168,11 @@ void run_dispatcher_recursive_test() {
 
       auto object_id1 = pqrs::dispatcher::make_new_object_id();
       auto object_id2 = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id1);
-      d.attach(object_id2);
+      expect(d.attach(object_id1));
+      expect(d.attach(object_id2));
 
       d.detach(object_id1, [&] {
-        d.detach(object_id2);
+        expect(d.detach(object_id2));
       });
 
       d.terminate();
@@ -186,21 +186,21 @@ void run_dispatcher_recursive_test() {
       auto object_id1 = pqrs::dispatcher::make_new_object_id();
       auto object_id2 = pqrs::dispatcher::make_new_object_id();
       auto object_id3 = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id1);
-      d.attach(object_id2);
-      d.attach(object_id3);
+      expect(d.attach(object_id1));
+      expect(d.attach(object_id2));
+      expect(d.attach(object_id3));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id3,
           [&] {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-            d.detach(object_id2);
-          });
+            expect(d.detach(object_id2));
+          }));
 
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-      d.detach(object_id1);
+      expect(d.detach(object_id1));
 
       d.terminate();
     }
@@ -220,13 +220,13 @@ void run_dispatcher_recursive_test() {
         pqrs::dispatcher::dispatcher d(time_source);
 
         auto object_id = pqrs::dispatcher::make_new_object_id();
-        d.attach(object_id);
+        expect(d.attach(object_id));
 
-        d.enqueue(
+        expect(d.enqueue(
             object_id,
             [&] {
               dispatcher_recursive_function(d, object_id, count);
-            });
+            }));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 

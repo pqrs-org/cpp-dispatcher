@@ -24,14 +24,14 @@ void run_dispatcher_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
       expect(!d.dispatcher_thread());
 
       auto start = std::chrono::steady_clock::now();
 
       for (int i = 0; i < 10000; ++i) {
-        d.enqueue(
+        expect(d.enqueue(
             object_id,
             [&d, &count, i] {
               ++count;
@@ -41,21 +41,21 @@ void run_dispatcher_test() {
               }
 
               expect(d.dispatcher_thread());
-            });
+            }));
       }
 
       auto wait = pqrs::make_thread_wait();
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [wait] {
             wait->notify();
-          });
+          }));
       wait->wait_notice();
 
       auto elapsed = std::chrono::steady_clock::now() - start;
       expect(elapsed > std::chrono::milliseconds(400));
 
-      d.detach(object_id);
+      expect(d.detach(object_id));
       d.terminate();
     }
 
@@ -73,33 +73,33 @@ void run_dispatcher_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&] {
             text += "a";
-          });
-      d.enqueue(
+          }));
+      expect(d.enqueue(
           object_id,
           [&] {
             text += "b";
-          });
-      d.enqueue(
+          }));
+      expect(d.enqueue(
           object_id,
           [&] {
             text += "c";
-          });
+          }));
 
       auto wait = pqrs::make_thread_wait();
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [wait] {
             wait->notify();
-          });
+          }));
       wait->wait_notice();
 
-      d.detach(object_id);
+      expect(d.detach(object_id));
       d.terminate();
 
       expect(text == "abc");
@@ -117,7 +117,7 @@ void run_dispatcher_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
       d.terminate();
 
@@ -145,9 +145,9 @@ void run_dispatcher_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
-      d.detach(object_id);
+      expect(d.detach(object_id));
 
       auto result = d.enqueue(
           object_id,

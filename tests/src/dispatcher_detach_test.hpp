@@ -17,23 +17,23 @@ void run_dispatcher_detach_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&] {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-          });
+          }));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&] {
             ++count;
-          });
+          }));
 
       // `detach` cancel queued functions.
 
-      d.detach(object_id);
+      expect(d.detach(object_id));
 
       expect(count == 0);
 
@@ -52,7 +52,7 @@ void run_dispatcher_detach_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
       expect(count == 0);
 
@@ -76,9 +76,9 @@ void run_dispatcher_detach_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&] {
             d.detach(
@@ -87,7 +87,7 @@ void run_dispatcher_detach_test() {
                   std::this_thread::sleep_for(std::chrono::milliseconds(100));
                   ++count;
                 });
-          });
+          }));
 
       expect(count == 0);
 
@@ -107,7 +107,7 @@ void run_dispatcher_detach_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
       auto ready = pqrs::make_thread_wait();
 
@@ -116,7 +116,7 @@ void run_dispatcher_detach_test() {
         d.terminate();
       });
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&] {
             d.detach(
@@ -127,7 +127,7 @@ void run_dispatcher_detach_test() {
                 });
 
             ready->notify();
-          });
+          }));
 
       terminate_thread.join();
 
@@ -145,7 +145,7 @@ void run_dispatcher_detach_test() {
         }
 
         auto object_id = pqrs::dispatcher::make_new_object_id();
-        d.attach(object_id);
+        expect(d.attach(object_id));
 
         d.detach(
             object_id,
@@ -171,18 +171,18 @@ void run_dispatcher_detach_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&count] {
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
             ++count;
-          });
+          }));
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-      d.detach(object_id);
+      expect(d.detach(object_id));
 
       expect(count == 1);
 
@@ -195,13 +195,13 @@ void run_dispatcher_detach_test() {
       pqrs::dispatcher::dispatcher d(time_source);
 
       auto object_id = pqrs::dispatcher::make_new_object_id();
-      d.attach(object_id);
+      expect(d.attach(object_id));
 
-      d.enqueue(
+      expect(d.enqueue(
           object_id,
           [&] {
-            d.detach(object_id);
-          });
+            expect(d.detach(object_id));
+          }));
 
       d.terminate();
     }

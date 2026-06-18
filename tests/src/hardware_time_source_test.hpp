@@ -8,12 +8,12 @@ public:
   when_hardware_time_source_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
                                  size_t& count,
                                  pqrs::dispatcher::duration duration) : dispatcher_client(weak_dispatcher) {
-    enqueue_to_dispatcher(
+    boost::ut::expect(enqueue_to_dispatcher(
         [&count] {
           std::cout << "." << std::flush;
           ++count;
         },
-        when_now() + duration);
+        when_now() + duration));
   }
 
   ~when_hardware_time_source_test() override {
