@@ -10,6 +10,7 @@
 #include "dispatcher/object_id.hpp"
 #include "dispatcher/time_source.hpp"
 
+#include "dispatcher/extra/debounced_task.hpp"
 #include "dispatcher/extra/dispatcher_client.hpp"
 #include "dispatcher/extra/shared_dispatcher.hpp"
 #include "dispatcher/extra/timer.hpp"

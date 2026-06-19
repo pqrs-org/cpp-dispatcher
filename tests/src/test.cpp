@@ -1,3 +1,4 @@
+#include "debounced_task_test.hpp"
 #include "dispatcher_detach_test.hpp"
 #include "dispatcher_recursive_test.hpp"
 #include "dispatcher_test.hpp"
@@ -13,6 +14,7 @@ int main() {
   run_dispatcher_when_test();
   run_hardware_time_source_test();
   run_object_id_test();
+  run_debounced_task_test();
   run_timer_test();
   return 0;
 }
