@@ -5,7 +5,8 @@
 namespace {
 class recursive_detach_test final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
-  recursive_detach_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher) {
+  recursive_detach_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher)
+      : dispatcher_client(weak_dispatcher) {
   }
 
   ~recursive_detach_test() override {
@@ -27,9 +28,10 @@ class detach_from_dispatcher_test final : public pqrs::dispatcher::extra::dispat
 public:
   detach_from_dispatcher_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
                               bool& cleanup_ran,
-                              bool& cleanup_in_dispatcher_thread) : dispatcher_client(weak_dispatcher),
-                                                                    cleanup_ran_(cleanup_ran),
-                                                                    cleanup_in_dispatcher_thread_(cleanup_in_dispatcher_thread) {
+                              bool& cleanup_in_dispatcher_thread)
+      : dispatcher_client(weak_dispatcher),
+        cleanup_ran_(cleanup_ran),
+        cleanup_in_dispatcher_thread_(cleanup_in_dispatcher_thread) {
   }
 
   void run_detach_in_dispatcher_thread() {
@@ -70,8 +72,9 @@ void dispatcher_recursive_function(pqrs::dispatcher::dispatcher& d,
 
 class dispatcher_recursive_class final {
 public:
-  dispatcher_recursive_class(size_t& count) : count_(count),
-                                              object_id_(pqrs::dispatcher::make_new_object_id()) {
+  dispatcher_recursive_class(size_t& count)
+      : count_(count),
+        object_id_(pqrs::dispatcher::make_new_object_id()) {
     time_source_ = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
 
     dispatcher_ = std::make_unique<pqrs::dispatcher::dispatcher>(time_source_);

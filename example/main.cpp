@@ -5,8 +5,9 @@
 class object1 final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
   object1(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher,
-          int index) : dispatcher_client(weak_dispatcher),
-                       index_(index) {
+          int index)
+      : dispatcher_client(weak_dispatcher),
+        index_(index) {
   }
 
   ~object1() override {

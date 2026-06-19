@@ -21,7 +21,8 @@ public:
   object_id& operator=(const object_id&) = delete;
   object_id& operator=(object_id&&) = delete;
 
-  object_id(object_id&& other) noexcept : value_(std::exchange(other.value_, 0)) {
+  object_id(object_id&& other) noexcept
+      : value_(std::exchange(other.value_, 0)) {
   }
 
   ~object_id() {
@@ -89,7 +90,8 @@ private:
     }
   };
 
-  explicit object_id(uint64_t value) noexcept : value_(value) {
+  explicit object_id(uint64_t value) noexcept
+      : value_(value) {
   }
 
   uint64_t value_ = 0;

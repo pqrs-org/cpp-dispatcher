@@ -21,10 +21,11 @@ namespace pqrs::dispatcher::extra {
 
 class timer final {
 public:
-  timer(dispatcher_client& dispatcher_client) : dispatcher_client_(dispatcher_client),
-                                                current_function_id_(0),
-                                                interval_(duration::zero()),
-                                                enabled_(false) {
+  timer(dispatcher_client& dispatcher_client)
+      : dispatcher_client_(dispatcher_client),
+        current_function_id_(0),
+        interval_(duration::zero()),
+        enabled_(false) {
   }
 
   ~timer() {

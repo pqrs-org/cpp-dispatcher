@@ -381,9 +381,10 @@ private:
   public:
     entry(uint64_t object_id_value,
           std::function<void()> function,
-          time_point when) : object_id_value_(object_id_value),
-                             function_(std::move(function)),
-                             when_(when) {
+          time_point when)
+        : object_id_value_(object_id_value),
+          function_(std::move(function)),
+          when_(when) {
     }
 
     [[nodiscard]] uint64_t get_object_id_value() const noexcept {

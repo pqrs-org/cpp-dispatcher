@@ -9,8 +9,9 @@
 namespace {
 class debounced_task_test final : public pqrs::dispatcher::extra::dispatcher_client {
 public:
-  debounced_task_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher),
-                                                                                     debounced_task_(*this) {
+  debounced_task_test(std::weak_ptr<pqrs::dispatcher::dispatcher> weak_dispatcher)
+      : dispatcher_client(weak_dispatcher),
+        debounced_task_(*this) {
   }
 
   ~debounced_task_test() override {
