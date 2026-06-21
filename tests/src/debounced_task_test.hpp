@@ -185,23 +185,28 @@ void run_debounced_task_test() {
     {
       auto d = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
       auto t = std::make_unique<debounced_task_test>(d);
+      auto wait_started = pqrs::make_thread_wait();
       auto wait = pqrs::make_thread_wait();
+      auto wait_called = pqrs::make_thread_wait();
       size_t count = 0;
 
-      expect(t->enqueue_to_dispatcher([wait] {
+      expect(t->enqueue_to_dispatcher([wait_started, wait] {
+        wait_started->notify();
         wait->wait_notice();
       }));
+      wait_started->wait_notice();
 
       expect(t->debounce_after(
-          [&] {
+          [&, wait_called] {
             ++count;
+            wait_called->notify();
           },
           std::chrono::milliseconds(100)));
 
       time_source->set_now(pqrs::dispatcher::time_point(std::chrono::milliseconds(100)));
       wait->notify();
       d->invoke();
-      t->wait_at(pqrs::dispatcher::time_point(std::chrono::milliseconds(100)));
+      wait_called->wait_notice();
       expect(count == 1_ul);
 
       t.reset();
