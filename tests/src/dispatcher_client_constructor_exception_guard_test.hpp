@@ -139,4 +139,68 @@ void run_dispatcher_client_constructor_exception_guard_test() {
     expect(caught);
     expect(!body_entered);
   };
+
+  "dispatcher_client_constructor_exception_guard.cleanup_copy_exception"_test = [] {
+    struct cleanup {
+      int& copies;
+      int fail_on_copy;
+      bool& called;
+
+      cleanup(int& copies, int fail_on_copy, bool& called)
+          : copies(copies), fail_on_copy(fail_on_copy), called(called) {
+      }
+
+      cleanup(const cleanup& other)
+          : copies(other.copies), fail_on_copy(other.fail_on_copy), called(other.called) {
+        if (++copies == fail_on_copy) {
+          throw std::runtime_error("cleanup copy");
+        }
+      }
+
+      void operator()() const noexcept {
+        called = true;
+      }
+    };
+
+    class failing_client final : public dispatcher_client {
+    private:
+      dispatcher_client_constructor_exception_guard guard_{*this};
+
+    public:
+      failing_client(std::weak_ptr<pqrs::dispatcher::dispatcher> dispatcher, cleanup& cleanup)
+          : dispatcher_client(dispatcher), timer_(*this) {
+        guard_.initialize(
+            [] { throw std::runtime_error("initialization"); },
+            cleanup);
+      }
+
+      ~failing_client() override {
+        detach_from_dispatcher();
+      }
+
+    private:
+      // Its destructor aborts unless the guard detaches before unwinding members.
+      pqrs::dispatcher::extra::timer timer_;
+    };
+
+    auto source = std::make_shared<pqrs::dispatcher::pseudo_time_source>();
+    auto dispatcher = std::make_shared<pqrs::dispatcher::dispatcher>(source);
+    // Exercise conversion to std::function and subsequent copies in detach,
+    // including a copy after the client has already detached.
+    for (int fail_on_copy = 1; fail_on_copy <= 3; ++fail_on_copy) {
+      int copies = 0;
+      bool called = false;
+      bool caught = false;
+      cleanup cleanup(copies, fail_on_copy, called);
+      try {
+        failing_client client(dispatcher, cleanup);
+      } catch (const std::runtime_error& e) {
+        caught = true;
+        expect(std::string_view(e.what()) == "initialization");
+      }
+      expect(caught);
+      expect(copies == fail_on_copy);
+      expect(!called);
+    }
+  };
 }

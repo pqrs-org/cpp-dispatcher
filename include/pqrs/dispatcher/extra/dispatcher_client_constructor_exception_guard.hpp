@@ -85,12 +85,20 @@ public:
 
   // Cleanup runs on the dispatcher before members are destroyed. Use it for
   // external signal connections or child clients started during construction.
+  // If preparing or scheduling cleanup throws, detach without cleanup and
+  // preserve the original initialization exception. Cleanup itself must not throw.
   template <typename Function, typename Cleanup>
   void initialize(Function&& function, Cleanup&& cleanup) {
     try {
       std::forward<Function>(function)();
     } catch (...) {
-      client_->detach_from_dispatcher(std::forward<Cleanup>(cleanup));
+      try {
+        client_->detach_from_dispatcher(std::forward<Cleanup>(cleanup));
+      } catch (...) {
+        // Conversion/copying to std::function can fail before detaching.
+        // Detach here, since member destruction precedes this guard's destructor.
+        client_->detach_from_dispatcher();
+      }
       release();
       throw;
     }
