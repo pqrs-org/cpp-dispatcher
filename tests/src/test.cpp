@@ -1,4 +1,5 @@
 #include "debounced_task_test.hpp"
+#include "dispatcher_client_constructor_exception_guard_test.hpp"
 #include "dispatcher_detach_test.hpp"
 #include "dispatcher_recursive_test.hpp"
 #include "dispatcher_test.hpp"
@@ -8,6 +9,7 @@
 #include "timer_test.hpp"
 
 int main() {
+  run_dispatcher_client_constructor_exception_guard_test();
   run_dispatcher_detach_test();
   run_dispatcher_recursive_test();
   run_dispatcher_test();
