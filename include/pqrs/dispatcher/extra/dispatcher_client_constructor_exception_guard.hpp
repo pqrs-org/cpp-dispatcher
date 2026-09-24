@@ -59,7 +59,7 @@ namespace pqrs::dispatcher::extra {
 //
 // Use guard_.initialize(function) when no cleanup is needed, or
 // guard_.initialize() for an empty constructor body.
-// Call initialize only once. Calling it again after success or failure aborts.
+// Call initialize only once. Reentrant calls and calls after success or failure abort.
 
 class dispatcher_client_constructor_exception_guard final {
 public:
@@ -77,10 +77,7 @@ public:
   }
 
   void initialize() noexcept {
-    if (!client_) {
-      std::abort();
-    }
-
+    begin_initialize();
     release();
   }
 
@@ -95,9 +92,7 @@ public:
   // preserve the original initialization exception. Cleanup itself must not throw.
   template <typename Function, typename Cleanup>
   void initialize(Function&& function, Cleanup&& cleanup) {
-    if (!client_) {
-      std::abort();
-    }
+    begin_initialize();
 
     try {
       std::forward<Function>(function)();
@@ -106,7 +101,7 @@ public:
         client_->detach_from_dispatcher(std::forward<Cleanup>(cleanup));
       } catch (...) {
         // Conversion/copying to std::function can fail before detaching.
-        // Detach here, since member destruction precedes this guard's destructor.
+        // Detach here before unwinding destroys the client's members.
         client_->detach_from_dispatcher();
       }
       release();
@@ -116,10 +111,18 @@ public:
   }
 
 private:
+  void begin_initialize() noexcept {
+    // Reject reuse without disarming the destructor's detach fallback.
+    if (std::exchange(initialization_started_, true)) {
+      std::abort();
+    }
+  }
+
   void release() noexcept {
     client_ = nullptr;
   }
 
   dispatcher_client* client_;
+  bool initialization_started_ = false;
 };
 } // namespace pqrs::dispatcher::extra
