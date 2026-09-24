@@ -5,6 +5,7 @@
 // (See https://www.boost.org/LICENSE_1_0.txt)
 
 #include "dispatcher_client.hpp"
+#include <cstdlib>
 #include <utility>
 
 namespace pqrs::dispatcher::extra {
@@ -58,6 +59,7 @@ namespace pqrs::dispatcher::extra {
 //
 // Use guard_.initialize(function) when no cleanup is needed, or
 // guard_.initialize() for an empty constructor body.
+// Call initialize only once. Calling it again after success or failure aborts.
 
 class dispatcher_client_constructor_exception_guard final {
 public:
@@ -75,6 +77,10 @@ public:
   }
 
   void initialize() noexcept {
+    if (!client_) {
+      std::abort();
+    }
+
     release();
   }
 
@@ -89,6 +95,10 @@ public:
   // preserve the original initialization exception. Cleanup itself must not throw.
   template <typename Function, typename Cleanup>
   void initialize(Function&& function, Cleanup&& cleanup) {
+    if (!client_) {
+      std::abort();
+    }
+
     try {
       std::forward<Function>(function)();
     } catch (...) {
