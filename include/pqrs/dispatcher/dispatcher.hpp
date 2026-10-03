@@ -26,9 +26,7 @@ public:
   dispatcher& operator=(const dispatcher&) = delete;
 
   explicit dispatcher(std::weak_ptr<time_source> weak_time_source)
-      : weak_time_source_(std::move(weak_time_source)),
-        worker_thread_id_wait_(make_thread_wait()),
-        object_id_(make_new_object_id()) {
+      : weak_time_source_(std::move(weak_time_source)) {
     worker_thread_ = std::thread([this] {
       worker_thread_id_ = std::this_thread::get_id();
       worker_thread_id_wait_->notify();
@@ -410,10 +408,10 @@ private:
 
   std::thread worker_thread_;
   std::thread::id worker_thread_id_;
-  std::shared_ptr<thread_wait> worker_thread_id_wait_;
+  std::shared_ptr<thread_wait> worker_thread_id_wait_{make_thread_wait()};
 
   std::deque<std::unique_ptr<entry>> queue_;
-  bool exit_ = false;
+  bool exit_{false};
 
   // Protects queue_, exit_, and the worker thread wait condition.
   // Lock order: acquire object_ids_mutex_ before mutex_ if both are needed.
@@ -422,7 +420,7 @@ private:
   std::condition_variable cv_;
 
   // `object_id_` is for a function after detach
-  object_id object_id_;
+  object_id object_id_{make_new_object_id()};
   std::unordered_set<uint64_t> object_ids_;
   std::mutex object_ids_mutex_;
 
